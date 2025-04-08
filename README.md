@@ -1,8 +1,8 @@
-Progetto "Soccorso"
+#Progetto "Soccorso"
 
     Versione 1.0
 
-Premessa
+#Premessa
 
 I progetti di fine corso si ispirano sempre ad esigenze reali. La specifica informale del problema data nei paragrafi seguenti può essere, come in ogni caso reale, incompleta e, in alcuni punti, ambigua o contraddittoria. Lo studente dovrà quindi raffinare e disambiguare le specifiche mediante l'interazione con il committente. In alcuni casi allo studente sarà richiesto di valutare diverse possibili alternative, per poi sceglierne una in maniera motivata. Le motivazioni di tutte le scelte interpretative, progettuali e implementative andranno sempre chiaramente documentate nel progetto e verranno discusse in sede di esame.
 
