@@ -44,6 +44,7 @@ CREATE TABLE `richiesta` (
   `stringa_convalida` varchar(20) NOT NULL,
   `indirizzo_ip_origine` varchar(12) NOT NULL,
   `attiva` boolean DEFAULT FALSE,
+  `stato` enum("non_attiva", "attiva", "in_corso", "chiusa") DEFAULT "non_attiva",
   `nome_segnalante` varchar(20) DEFAULT NULL,
   `email_segnalante` varchar(40) DEFAULT NULL,
   `timestamp_arrivo` datetime NOT NULL,
