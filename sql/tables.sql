@@ -55,3 +55,27 @@ CREATE TABLE `richiesta` (
   UNIQUE KEY `stringa_convalida` (`stringa_convalida`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+drop table if exists squadra;
+CREATE TABLE `squadra` (
+  `ID` int unsigned NOT NULL AUTO_INCREMENT,
+  `nome` varchar(20) DEFAULT NULL,
+  `ID_operatore_caposquadra` int unsigned NOT NULL,
+  PRIMARY KEY (`ID`),
+  KEY `operatore_caposquadra` (`ID_operatore_caposquadra`),
+  CONSTRAINT `operatore_caposquadra` FOREIGN KEY (`ID_operatore_caposquadra`) REFERENCES `operatore` (`ID`) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+drop table if exists missione;
+CREATE TABLE `missione` (
+  `ID` int unsigned NOT NULL AUTO_INCREMENT,
+  `timestamp_inizio` datetime NOT NULL,
+  `obiettivo` text NOT NULL,
+  `descrizione` text,
+  `ID_squadra` int unsigned NOT NULL,
+  `ID_richiesta` int unsigned NOT NULL,
+  PRIMARY KEY (`ID`),
+  KEY `squadra_associata` (`ID_squadra`),
+  KEY `richiesta_associata` (`ID_richiesta`),
+  CONSTRAINT `richiesta_associata` FOREIGN KEY (`ID_richiesta`) REFERENCES `richiesta` (`ID`) ON UPDATE CASCADE,
+  CONSTRAINT `squadra_associata` FOREIGN KEY (`ID_squadra`) REFERENCES `squadra` (`ID`) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAU
