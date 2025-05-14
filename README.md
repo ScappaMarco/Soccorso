@@ -1,6 +1,5 @@
 # Progetto "Soccorso"
 
-    Versione 1.0
 
 ## Premessa
 

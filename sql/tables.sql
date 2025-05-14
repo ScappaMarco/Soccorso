@@ -43,7 +43,7 @@ CREATE TABLE `richiesta` (
   `ID` int unsigned NOT NULL AUTO_INCREMENT,
   `stringa_convalida` varchar(20) NOT NULL,
   `indirizzo_ip_origine` varchar(12) NOT NULL,
-  `stato` enum('non attiva','attiva') DEFAULT 'non attiva',
+  `attiva` boolean DEFAULT FALSE,
   `nome_segnalante` varchar(20) DEFAULT NULL,
   `email_segnalante` varchar(40) DEFAULT NULL,
   `timestamp_arrivo` datetime NOT NULL,
