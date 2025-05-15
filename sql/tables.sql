@@ -1,3 +1,5 @@
+use soccorso;
+
 drop table if exists operatore;
 CREATE TABLE `operatore` (
   `ID` int unsigned NOT NULL AUTO_INCREMENT,
@@ -79,3 +81,22 @@ CREATE TABLE `missione` (
   CONSTRAINT `richiesta_associata` FOREIGN KEY (`ID_richiesta`) REFERENCES `richiesta` (`ID`) ON UPDATE CASCADE,
   CONSTRAINT `squadra_associata` FOREIGN KEY (`ID_squadra`) REFERENCES `squadra` (`ID`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAU
+
+drop table if exists abilitaAmministratore;
+CREATE TABLE `abilitaAmministratore` (
+  `ID_amministratore` int unsigned NOT NULL,
+  `ID_abilita` int unsigned NOT NULL,
+  PRIMARY KEY (`ID_amministratore`,`ID_abilita`),
+  KEY `abilita` (`ID_abilita`),
+  CONSTRAINT `abilita_amministratore` FOREIGN KEY (`ID_abilita`) REFERENCES `abilita` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `amministratore_abilita` FOREIGN KEY (`ID_amministratore`) REFERENCES `amministratore` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+drop table if exists abilitaOperatore;
+CREATE TABLE `abilitaOperatore` (
+  `ID_abilita` int unsigned NOT NULL,
+  `ID_operatore` int unsigned NOT NULL,
+  PRIMARY KEY (`ID_abilita`,`ID_operatore`),
+  CONSTRAINT `abilita_operatore` FOREIGN KEY (`ID_abilita`) REFERENCES `abilita` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `operatore_abilita` FOREIGN KEY (`ID_operatore`) REFERENCES `operatore` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
