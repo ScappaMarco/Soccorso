@@ -93,6 +93,16 @@ CREATE TABLE `mezzo` (
   CONSTRAINT `mezzo_chk_1` CHECK (regexp_like(`targa`,_utf8mb4'^[A-Z]{2}[0-9]{3}[A-Z]{2}$'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+drop table if exists materiale;
+CREATE TABLE `materiale` (
+  `ID` int unsigned NOT NULL AUTO_INCREMENT,
+  `nome` varchar(20) NOT NULL,
+  `descrizione` text,
+  PRIMARY KEY (`ID`),
+  UNIQUE KEY `nome` (`nome`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
 drop table if exists abilitaAmministratore;
 CREATE TABLE `abilitaAmministratore` (
   `ID_amministratore` int unsigned NOT NULL,
@@ -109,4 +119,14 @@ CREATE TABLE `abilitaOperatore` (
   PRIMARY KEY (`ID_abilita`,`ID_operatore`),
   CONSTRAINT `abilita_operatore` FOREIGN KEY (`ID_abilita`) REFERENCES `abilita` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `operatore_abilita` FOREIGN KEY (`ID_operatore`) REFERENCES `operatore` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+drop table if exists patenteOperatore;
+CREATE TABLE `patenteoperatore` (
+  `ID_operatore` int unsigned NOT NULL,
+  `ID_patente` int unsigned NOT NULL,
+  PRIMARY KEY (`ID_operatore`,`ID_patente`),
+  KEY `patente_operatore` (`ID_patente`),
+  CONSTRAINT `operatore_patente` FOREIGN KEY (`ID_operatore`) REFERENCES `operatore` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `patente_operatore` FOREIGN KEY (`ID_patente`) REFERENCES `patente` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
