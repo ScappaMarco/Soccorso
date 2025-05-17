@@ -102,7 +102,6 @@ CREATE TABLE `materiale` (
   UNIQUE KEY `nome` (`nome`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-
 drop table if exists abilitaAmministratore;
 CREATE TABLE `abilitaAmministratore` (
   `ID_amministratore` int unsigned NOT NULL,
@@ -126,7 +125,6 @@ CREATE TABLE `patenteOperatore` (
   `ID_operatore` int unsigned NOT NULL,
   `ID_patente` int unsigned NOT NULL,
   PRIMARY KEY (`ID_operatore`,`ID_patente`),
-  KEY `patente_operatore` (`ID_patente`),
   CONSTRAINT `operatore_patente` FOREIGN KEY (`ID_operatore`) REFERENCES `operatore` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `patente_operatore` FOREIGN KEY (`ID_patente`) REFERENCES `patente` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -137,7 +135,6 @@ CREATE TABLE `squadraOperatore` (
   `ID_squadra` int unsigned NOT NULL,
   `ruolo` varchar(20) NOT NULL,
   PRIMARY KEY (`ID_operatore`,`ID_squadra`),
-  KEY `squadra_operatore` (`ID_squadra`),
   CONSTRAINT `operatore_squadra` FOREIGN KEY (`ID_operatore`) REFERENCES `operatore` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `squadra_operatore` FOREIGN KEY (`ID_squadra`) REFERENCES `squadra` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -149,8 +146,36 @@ CREATE TABLE `aggiornamenti` (
   `messaggio_aggiornamento` text NOT NULL,
   `timestamp_immissione` datetime NOT NULL,
   PRIMARY KEY (`ID_amministratore`,`ID_missione`),
-  KEY `missione_amministratore` (`ID_missione`),
-  CONSTRAINT `amministratore_missione` FOREIGN KEY (`ID_amministratore`) REFERENCES `amministratore` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `missione_amministratore` FOREIGN KEY (`ID_missione`) REFERENCES `missione` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT `amministratore_missione_agg` FOREIGN KEY (`ID_amministratore`) REFERENCES `amministratore` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE, -- da cambiare
+  CONSTRAINT `missione_amministratore_agg` FOREIGN KEY (`ID_missione`) REFERENCES `missione` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+drop table if exists conclusioni;
+CREATE TABLE `conclusioni` (
+  `ID_missione` int unsigned NOT NULL,
+  `ID_amministratore` int unsigned NOT NULL,
+  `livello_successo` smallint NOT NULL,
+  `timestamp_fine` datetime NOT NULL,
+  PRIMARY KEY (`ID_missione`,`ID_amministratore`),
+  CONSTRAINT `amministratore_missione_conc` FOREIGN KEY (`ID_amministratore`) REFERENCES `amministratore` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `missione_amministratore_conc` FOREIGN KEY (`ID_missione`) REFERENCES `missione` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `check_livello_successo` CHECK ((`livello_successo` between 1 and 5))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+drop table if exists missioneMezzo;
+CREATE TABLE `missioneMezzo` (
+  `ID_missione` int unsigned NOT NULL,
+  `ID_mezzo` int unsigned NOT NULL,
+  PRIMARY KEY (`ID_missione`,`ID_mezzo`),
+  CONSTRAINT `mezzo_missione` FOREIGN KEY (`ID_mezzo`) REFERENCES `mezzo` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `missione_mezzo` FOREIGN KEY (`ID_missione`) REFERENCES `missione` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+drop table if exists missioneMateriale;
+CREATE TABLE `missioneMateriale` (
+  `ID_missione` int unsigned NOT NULL,
+  `ID_materiale` int unsigned NOT NULL,
+  PRIMARY KEY (`ID_missione`,`ID_materiale`),
+  CONSTRAINT `materiale_missione` FOREIGN KEY (`ID_missione`) REFERENCES `materiale` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `missione_materiale` FOREIGN KEY (`ID_missione`) REFERENCES `missione` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

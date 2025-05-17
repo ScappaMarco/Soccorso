@@ -1,6 +1,9 @@
 use soccorso;
 
 drop table aggiornamenti;
+drop table conclusioni;
+drop table missioneMezzo;
+drop table missioneMateriale;
 drop table missione;
 drop table squadraOperatore;
 drop table squadra;
