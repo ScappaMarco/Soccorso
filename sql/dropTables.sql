@@ -1,6 +1,8 @@
 use soccorso;
 
+drop table aggiornamenti;
 drop table missione;
+drop table squadraOperatore;
 drop table squadra;
 drop table abilitaAmministratore;
 drop table abilitaOperatore;
