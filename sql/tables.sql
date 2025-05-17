@@ -45,11 +45,12 @@ CREATE TABLE `richiesta` (
   `ID` int unsigned NOT NULL AUTO_INCREMENT,
   `stringa_convalida` varchar(20) NOT NULL,
   `indirizzo_ip_origine` varchar(12) NOT NULL,
-  `attiva` boolean DEFAULT FALSE,
-  `stato` enum("non_attiva", "attiva", "in_corso", "chiusa") DEFAULT "non_attiva",
+  `stato` enum('non_attiva','attiva','in_corso','chiusa') DEFAULT 'non_attiva',
   `nome_segnalante` varchar(20) DEFAULT NULL,
   `email_segnalante` varchar(40) DEFAULT NULL,
   `timestamp_arrivo` datetime NOT NULL,
+  `file_immagine` blob,
+  `didascalia_immagine` varchar(30) DEFAULT NULL,
   `descrizione` text,
   `indirizzo` varchar(30) NOT NULL,
   `coordinate` varchar(20) NOT NULL,
@@ -63,7 +64,6 @@ CREATE TABLE `squadra` (
   `nome` varchar(20) DEFAULT NULL,
   `ID_operatore_caposquadra` int unsigned NOT NULL,
   PRIMARY KEY (`ID`),
-  KEY `operatore_caposquadra` (`ID_operatore_caposquadra`),
   CONSTRAINT `operatore_caposquadra` FOREIGN KEY (`ID_operatore_caposquadra`) REFERENCES `operatore` (`ID`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
@@ -76,18 +76,28 @@ CREATE TABLE `missione` (
   `ID_squadra` int unsigned NOT NULL,
   `ID_richiesta` int unsigned NOT NULL,
   PRIMARY KEY (`ID`),
-  KEY `squadra_associata` (`ID_squadra`),
-  KEY `richiesta_associata` (`ID_richiesta`),
   CONSTRAINT `richiesta_associata` FOREIGN KEY (`ID_richiesta`) REFERENCES `richiesta` (`ID`) ON UPDATE CASCADE,
   CONSTRAINT `squadra_associata` FOREIGN KEY (`ID_squadra`) REFERENCES `squadra` (`ID`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAU
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+drop table if exists mezzo;
+CREATE TABLE `mezzo` (
+  `ID` int unsigned NOT NULL AUTO_INCREMENT,
+  `targa` varchar(7) NOT NULL,
+  `costruttore` varchar(30) NOT NULL,
+  `modello` varchar(30) NOT NULL,
+  `tipologia` varchar(30) NOT NULL,
+  `descrizione` text,
+  PRIMARY KEY (`ID`),
+  UNIQUE KEY `targa` (`targa`),
+  CONSTRAINT `mezzo_chk_1` CHECK (regexp_like(`targa`,_utf8mb4'^[A-Z]{2}[0-9]{3}[A-Z]{2}$'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 drop table if exists abilitaAmministratore;
 CREATE TABLE `abilitaAmministratore` (
   `ID_amministratore` int unsigned NOT NULL,
   `ID_abilita` int unsigned NOT NULL,
   PRIMARY KEY (`ID_amministratore`,`ID_abilita`),
-  KEY `abilita` (`ID_abilita`),
   CONSTRAINT `abilita_amministratore` FOREIGN KEY (`ID_abilita`) REFERENCES `abilita` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `amministratore_abilita` FOREIGN KEY (`ID_amministratore`) REFERENCES `amministratore` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

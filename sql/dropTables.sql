@@ -9,3 +9,4 @@ drop table amministratore;
 drop table patente;
 drop table richiesta;
 drop table abilita;
+drop table mezzo;
