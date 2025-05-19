@@ -99,12 +99,15 @@ DROP TABLE IF EXISTS `aggiornamenti`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `aggiornamenti` (
+  `ID` int unsigned NOT NULL AUTO_INCREMENT,
   `ID_amministratore` int unsigned NOT NULL,
   `ID_missione` int unsigned NOT NULL,
   `messaggio_aggiornamento` text NOT NULL,
   `timestamp_immissione` datetime NOT NULL,
-  PRIMARY KEY (`ID_amministratore`,`ID_missione`),
-  CONSTRAINT `amministratore_missione_agg` FOREIGN KEY (`ID_amministratore`) REFERENCES `amministratore` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  PRIMARY KEY (`ID`),
+  KEY `amministratore_missione_agg` (`ID_amministratore`),
+  KEY `missione_amministratore_agg` (`ID_missione`),
+  CONSTRAINT `amministratore_missione_agg` FOREIGN KEY (`ID_amministratore`) REFERENCES `amministratore` (`ID`) ON DELETE RESTRICT ON UPDATE CASCADE,
   CONSTRAINT `missione_amministratore_agg` FOREIGN KEY (`ID_missione`) REFERENCES `missione` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -132,6 +135,7 @@ CREATE TABLE `amministratore` (
   `data_nascita` date NOT NULL,
   `email` varchar(30) DEFAULT NULL,
   `matricola` int unsigned DEFAULT NULL,
+  `attivo` boolean DEFAULT TRUE,
   PRIMARY KEY (`ID`),
   UNIQUE KEY `matricola` (`matricola`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -184,7 +188,7 @@ DROP TABLE IF EXISTS `materiale`;
 CREATE TABLE `materiale` (
   `ID` int unsigned NOT NULL AUTO_INCREMENT,
   `nome` varchar(20) NOT NULL,
-  `descrizione` text,
+  `descrizione` text DEFAULT NULL,
   PRIMARY KEY (`ID`),
   UNIQUE KEY `nome` (`nome`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -212,7 +216,7 @@ CREATE TABLE `mezzo` (
   `costruttore` varchar(30) NOT NULL,
   `modello` varchar(30) NOT NULL,
   `tipologia` varchar(30) NOT NULL,
-  `descrizione` text,
+  `descrizione` text DEFAULT NULL,
   PRIMARY KEY (`ID`),
   UNIQUE KEY `targa` (`targa`),
   CONSTRAINT `mezzo_chk_1` CHECK (regexp_like(`targa`,_utf8mb4'^[A-Z]{2}[0-9]{3}[A-Z]{2}$'))
@@ -257,6 +261,31 @@ CREATE TABLE `missione` (
 LOCK TABLES `missione` WRITE;
 /*!40000 ALTER TABLE `missione` DISABLE KEYS */;
 /*!40000 ALTER TABLE `missione` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `missioneMateriale`
+--
+
+DROP TABLE IF EXISTS `missioneMateriale`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `missioneMateriale` (
+  `ID_missione` int unsigned NOT NULL,
+  `ID_materiale` int unsigned NOT NULL,
+  PRIMARY KEY (`ID_missione`,`ID_materiale`),
+  CONSTRAINT `materiale_missione` FOREIGN KEY (`ID_materiale`) REFERENCES `materiale` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `missione_materiale` FOREIGN KEY (`ID_missione`) REFERENCES `missione` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `missioneMateriale`
+--
+
+LOCK TABLES `missioneMateriale` WRITE;
+/*!40000 ALTER TABLE `missioneMateriale` DISABLE KEYS */;
+/*!40000 ALTER TABLE `missioneMateriale` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -376,7 +405,7 @@ CREATE TABLE `richiesta` (
   `nome_segnalante` varchar(20) DEFAULT NULL,
   `email_segnalante` varchar(40) DEFAULT NULL,
   `timestamp_arrivo` datetime NOT NULL,
-  `file_immagine` blob,
+  `file_immagine` blob DEFAULT NULL,
   `didascalia_immagine` varchar(30) DEFAULT NULL,
   `descrizione` text,
   `indirizzo` varchar(30) NOT NULL,
@@ -456,4 +485,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-05-17 18:16:43
+-- Dump completed on 2025-05-19 18:03:35
