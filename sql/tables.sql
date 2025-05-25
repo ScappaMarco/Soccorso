@@ -43,7 +43,6 @@ CREATE TABLE `abilitaAmministratore` (
   `ID_amministratore` int unsigned NOT NULL,
   `ID_abilita` int unsigned NOT NULL,
   PRIMARY KEY (`ID_amministratore`,`ID_abilita`),
-  KEY `abilita_amministratore` (`ID_abilita`),
   CONSTRAINT `abilita_amministratore` FOREIGN KEY (`ID_abilita`) REFERENCES `abilita` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `amministratore_abilita` FOREIGN KEY (`ID_amministratore`) REFERENCES `amministratore` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -60,7 +59,6 @@ CREATE TABLE `abilitaOperatore` (
   `ID_abilita` int unsigned NOT NULL,
   `ID_operatore` int unsigned NOT NULL,
   PRIMARY KEY (`ID_abilita`,`ID_operatore`),
-  KEY `operatore_abilita` (`ID_operatore`),
   CONSTRAINT `abilita_operatore` FOREIGN KEY (`ID_abilita`) REFERENCES `abilita` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `operatore_abilita` FOREIGN KEY (`ID_operatore`) REFERENCES `operatore` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -119,7 +117,6 @@ CREATE TABLE `conclusioni` (
   `livello_successo` smallint NOT NULL,
   `timestamp_fine` datetime NOT NULL,
   PRIMARY KEY (`ID_missione`,`ID_amministratore`),
-  KEY `amministratore_missione_conc` (`ID_amministratore`),
   CONSTRAINT `amministratore_missione_conc` FOREIGN KEY (`ID_amministratore`) REFERENCES `amministratore` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `missione_amministratore_conc` FOREIGN KEY (`ID_missione`) REFERENCES `missione` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `check_livello_successo` CHECK ((`livello_successo` between 1 and 5))
@@ -195,7 +192,6 @@ CREATE TABLE `missioneMateriale` (
   `ID_missione` int unsigned NOT NULL,
   `ID_materiale` int unsigned NOT NULL,
   PRIMARY KEY (`ID_missione`,`ID_materiale`),
-  KEY `materiale_missione` (`ID_materiale`),
   CONSTRAINT `materiale_missione` FOREIGN KEY (`ID_materiale`) REFERENCES `materiale` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `missione_materiale` FOREIGN KEY (`ID_missione`) REFERENCES `missione` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -212,7 +208,6 @@ CREATE TABLE `missioneMezzo` (
   `ID_missione` int unsigned NOT NULL,
   `ID_mezzo` int unsigned NOT NULL,
   PRIMARY KEY (`ID_missione`,`ID_mezzo`),
-  KEY `mezzo_missione` (`ID_mezzo`),
   CONSTRAINT `mezzo_missione` FOREIGN KEY (`ID_mezzo`) REFERENCES `mezzo` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `missione_mezzo` FOREIGN KEY (`ID_missione`) REFERENCES `missione` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -263,7 +258,6 @@ CREATE TABLE `patenteOperatore` (
   `ID_operatore` int unsigned NOT NULL,
   `ID_patente` int unsigned NOT NULL,
   PRIMARY KEY (`ID_operatore`,`ID_patente`),
-  KEY `patente_operatore` (`ID_patente`),
   CONSTRAINT `operatore_patente` FOREIGN KEY (`ID_operatore`) REFERENCES `operatore` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `patente_operatore` FOREIGN KEY (`ID_patente`) REFERENCES `patente` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -323,7 +317,6 @@ CREATE TABLE `squadraOperatore` (
   `ID_squadra` int unsigned NOT NULL,
   `ruolo` varchar(20) NOT NULL,
   PRIMARY KEY (`ID_operatore`,`ID_squadra`),
-  KEY `squadra_operatore` (`ID_squadra`),
   CONSTRAINT `operatore_squadra` FOREIGN KEY (`ID_operatore`) REFERENCES `operatore` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `squadra_operatore` FOREIGN KEY (`ID_squadra`) REFERENCES `squadra` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
