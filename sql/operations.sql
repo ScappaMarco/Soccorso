@@ -40,4 +40,5 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `termina_missione`(in ID_missione in
 		insert into conclusioni (ID_missione, ID_amministratore, livello_successo, timestamp_fine) values (ID_missione, ID_amministratore, livello_successo, timestamp_fine);
         -- l'aggiornamento dello stato della richiesta a "terminata" avviene tramite trigger after insert su "conclusioni".
 	end $
+
 DELIMITER ;
