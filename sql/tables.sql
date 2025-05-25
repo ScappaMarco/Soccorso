@@ -33,15 +33,6 @@ CREATE TABLE `abilita` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `abilita`
---
-
-LOCK TABLES `abilita` WRITE;
-/*!40000 ALTER TABLE `abilita` DISABLE KEYS */;
-/*!40000 ALTER TABLE `abilita` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `abilitaAmministratore`
 --
 
@@ -52,19 +43,11 @@ CREATE TABLE `abilitaAmministratore` (
   `ID_amministratore` int unsigned NOT NULL,
   `ID_abilita` int unsigned NOT NULL,
   PRIMARY KEY (`ID_amministratore`,`ID_abilita`),
+  KEY `abilita_amministratore` (`ID_abilita`),
   CONSTRAINT `abilita_amministratore` FOREIGN KEY (`ID_abilita`) REFERENCES `abilita` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `amministratore_abilita` FOREIGN KEY (`ID_amministratore`) REFERENCES `amministratore` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `abilitaAmministratore`
---
-
-LOCK TABLES `abilitaAmministratore` WRITE;
-/*!40000 ALTER TABLE `abilitaAmministratore` DISABLE KEYS */;
-/*!40000 ALTER TABLE `abilitaAmministratore` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `abilitaOperatore`
@@ -77,19 +60,11 @@ CREATE TABLE `abilitaOperatore` (
   `ID_abilita` int unsigned NOT NULL,
   `ID_operatore` int unsigned NOT NULL,
   PRIMARY KEY (`ID_abilita`,`ID_operatore`),
+  KEY `operatore_abilita` (`ID_operatore`),
   CONSTRAINT `abilita_operatore` FOREIGN KEY (`ID_abilita`) REFERENCES `abilita` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `operatore_abilita` FOREIGN KEY (`ID_operatore`) REFERENCES `operatore` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `abilitaOperatore`
---
-
-LOCK TABLES `abilitaOperatore` WRITE;
-/*!40000 ALTER TABLE `abilitaOperatore` DISABLE KEYS */;
-/*!40000 ALTER TABLE `abilitaOperatore` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `aggiornamenti`
@@ -103,7 +78,7 @@ CREATE TABLE `aggiornamenti` (
   `ID_amministratore` int unsigned NOT NULL,
   `ID_missione` int unsigned NOT NULL,
   `messaggio_aggiornamento` text NOT NULL,
-  `timestamp_immissione` datetime NOT NULL,
+  `timestamp_immissione` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`ID`),
   KEY `amministratore_missione_agg` (`ID_amministratore`),
   KEY `missione_amministratore_agg` (`ID_missione`),
@@ -111,15 +86,6 @@ CREATE TABLE `aggiornamenti` (
   CONSTRAINT `missione_amministratore_agg` FOREIGN KEY (`ID_missione`) REFERENCES `missione` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `aggiornamenti`
---
-
-LOCK TABLES `aggiornamenti` WRITE;
-/*!40000 ALTER TABLE `aggiornamenti` DISABLE KEYS */;
-/*!40000 ALTER TABLE `aggiornamenti` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `amministratore`
@@ -135,20 +101,10 @@ CREATE TABLE `amministratore` (
   `data_nascita` date NOT NULL,
   `email` varchar(30) DEFAULT NULL,
   `matricola` int unsigned DEFAULT NULL,
-  `attivo` boolean DEFAULT TRUE,
   PRIMARY KEY (`ID`),
   UNIQUE KEY `matricola` (`matricola`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `amministratore`
---
-
-LOCK TABLES `amministratore` WRITE;
-/*!40000 ALTER TABLE `amministratore` DISABLE KEYS */;
-/*!40000 ALTER TABLE `amministratore` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `conclusioni`
@@ -163,20 +119,12 @@ CREATE TABLE `conclusioni` (
   `livello_successo` smallint NOT NULL,
   `timestamp_fine` datetime NOT NULL,
   PRIMARY KEY (`ID_missione`,`ID_amministratore`),
+  KEY `amministratore_missione_conc` (`ID_amministratore`),
   CONSTRAINT `amministratore_missione_conc` FOREIGN KEY (`ID_amministratore`) REFERENCES `amministratore` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `missione_amministratore_conc` FOREIGN KEY (`ID_missione`) REFERENCES `missione` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `check_livello_successo` CHECK ((`livello_successo` between 1 and 5))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `conclusioni`
---
-
-LOCK TABLES `conclusioni` WRITE;
-/*!40000 ALTER TABLE `conclusioni` DISABLE KEYS */;
-/*!40000 ALTER TABLE `conclusioni` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `materiale`
@@ -188,20 +136,11 @@ DROP TABLE IF EXISTS `materiale`;
 CREATE TABLE `materiale` (
   `ID` int unsigned NOT NULL AUTO_INCREMENT,
   `nome` varchar(20) NOT NULL,
-  `descrizione` text DEFAULT NULL,
+  `descrizione` text,
   PRIMARY KEY (`ID`),
   UNIQUE KEY `nome` (`nome`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `materiale`
---
-
-LOCK TABLES `materiale` WRITE;
-/*!40000 ALTER TABLE `materiale` DISABLE KEYS */;
-/*!40000 ALTER TABLE `materiale` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `mezzo`
@@ -216,21 +155,12 @@ CREATE TABLE `mezzo` (
   `costruttore` varchar(30) NOT NULL,
   `modello` varchar(30) NOT NULL,
   `tipologia` varchar(30) NOT NULL,
-  `descrizione` text DEFAULT NULL,
+  `descrizione` text,
   PRIMARY KEY (`ID`),
   UNIQUE KEY `targa` (`targa`),
   CONSTRAINT `mezzo_chk_1` CHECK (regexp_like(`targa`,_utf8mb4'^[A-Z]{2}[0-9]{3}[A-Z]{2}$'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `mezzo`
---
-
-LOCK TABLES `mezzo` WRITE;
-/*!40000 ALTER TABLE `mezzo` DISABLE KEYS */;
-/*!40000 ALTER TABLE `mezzo` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `missione`
@@ -255,15 +185,6 @@ CREATE TABLE `missione` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `missione`
---
-
-LOCK TABLES `missione` WRITE;
-/*!40000 ALTER TABLE `missione` DISABLE KEYS */;
-/*!40000 ALTER TABLE `missione` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `missioneMateriale`
 --
 
@@ -274,19 +195,11 @@ CREATE TABLE `missioneMateriale` (
   `ID_missione` int unsigned NOT NULL,
   `ID_materiale` int unsigned NOT NULL,
   PRIMARY KEY (`ID_missione`,`ID_materiale`),
+  KEY `materiale_missione` (`ID_materiale`),
   CONSTRAINT `materiale_missione` FOREIGN KEY (`ID_materiale`) REFERENCES `materiale` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `missione_materiale` FOREIGN KEY (`ID_missione`) REFERENCES `missione` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `missioneMateriale`
---
-
-LOCK TABLES `missioneMateriale` WRITE;
-/*!40000 ALTER TABLE `missioneMateriale` DISABLE KEYS */;
-/*!40000 ALTER TABLE `missioneMateriale` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `missioneMezzo`
@@ -299,19 +212,11 @@ CREATE TABLE `missioneMezzo` (
   `ID_missione` int unsigned NOT NULL,
   `ID_mezzo` int unsigned NOT NULL,
   PRIMARY KEY (`ID_missione`,`ID_mezzo`),
+  KEY `mezzo_missione` (`ID_mezzo`),
   CONSTRAINT `mezzo_missione` FOREIGN KEY (`ID_mezzo`) REFERENCES `mezzo` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `missione_mezzo` FOREIGN KEY (`ID_missione`) REFERENCES `missione` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `missioneMezzo`
---
-
-LOCK TABLES `missioneMezzo` WRITE;
-/*!40000 ALTER TABLE `missioneMezzo` DISABLE KEYS */;
-/*!40000 ALTER TABLE `missioneMezzo` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `operatore`
@@ -333,15 +238,6 @@ CREATE TABLE `operatore` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `operatore`
---
-
-LOCK TABLES `operatore` WRITE;
-/*!40000 ALTER TABLE `operatore` DISABLE KEYS */;
-/*!40000 ALTER TABLE `operatore` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `patente`
 --
 
@@ -357,15 +253,6 @@ CREATE TABLE `patente` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `patente`
---
-
-LOCK TABLES `patente` WRITE;
-/*!40000 ALTER TABLE `patente` DISABLE KEYS */;
-/*!40000 ALTER TABLE `patente` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `patenteOperatore`
 --
 
@@ -376,19 +263,11 @@ CREATE TABLE `patenteOperatore` (
   `ID_operatore` int unsigned NOT NULL,
   `ID_patente` int unsigned NOT NULL,
   PRIMARY KEY (`ID_operatore`,`ID_patente`),
+  KEY `patente_operatore` (`ID_patente`),
   CONSTRAINT `operatore_patente` FOREIGN KEY (`ID_operatore`) REFERENCES `operatore` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `patente_operatore` FOREIGN KEY (`ID_patente`) REFERENCES `patente` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `patenteOperatore`
---
-
-LOCK TABLES `patenteOperatore` WRITE;
-/*!40000 ALTER TABLE `patenteOperatore` DISABLE KEYS */;
-/*!40000 ALTER TABLE `patenteOperatore` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `richiesta`
@@ -401,28 +280,19 @@ CREATE TABLE `richiesta` (
   `ID` int unsigned NOT NULL AUTO_INCREMENT,
   `stringa_convalida` varchar(20) NOT NULL,
   `indirizzo_ip_origine` varchar(12) NOT NULL,
-  `stato` enum('in_attesa','convalidata','in_corso','terminata') NOT NULL DEFAULT 'in_attesa',
-  `nome_segnalante` varchar(30) DEFAULT NULL,
+  `stato` enum('in_attesa','convalidata','in_corso','terminata') DEFAULT 'in_attesa',
+  `nome_segnalante` varchar(20) DEFAULT NULL,
   `email_segnalante` varchar(40) DEFAULT NULL,
-  `timestamp_arrivo` datetime NOT NULL,
-  `file_immagine` blob DEFAULT NULL,
+  `timestamp_arrivo` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `file_immagine` blob,
   `didascalia_immagine` varchar(30) DEFAULT NULL,
-  `descrizione` text DEFAULT NULL,
+  `descrizione` text,
   `indirizzo` varchar(30) NOT NULL,
   `coordinate` varchar(20) NOT NULL,
   PRIMARY KEY (`ID`),
   UNIQUE KEY `stringa_convalida` (`stringa_convalida`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `richiesta`
---
-
-LOCK TABLES `richiesta` WRITE;
-/*!40000 ALTER TABLE `richiesta` DISABLE KEYS */;
-/*!40000 ALTER TABLE `richiesta` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `squadra`
@@ -442,15 +312,6 @@ CREATE TABLE `squadra` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `squadra`
---
-
-LOCK TABLES `squadra` WRITE;
-/*!40000 ALTER TABLE `squadra` DISABLE KEYS */;
-/*!40000 ALTER TABLE `squadra` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `squadraOperatore`
 --
 
@@ -462,19 +323,11 @@ CREATE TABLE `squadraOperatore` (
   `ID_squadra` int unsigned NOT NULL,
   `ruolo` varchar(20) NOT NULL,
   PRIMARY KEY (`ID_operatore`,`ID_squadra`),
+  KEY `squadra_operatore` (`ID_squadra`),
   CONSTRAINT `operatore_squadra` FOREIGN KEY (`ID_operatore`) REFERENCES `operatore` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `squadra_operatore` FOREIGN KEY (`ID_squadra`) REFERENCES `squadra` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `squadraOperatore`
---
-
-LOCK TABLES `squadraOperatore` WRITE;
-/*!40000 ALTER TABLE `squadraOperatore` DISABLE KEYS */;
-/*!40000 ALTER TABLE `squadraOperatore` ENABLE KEYS */;
-UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -485,4 +338,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-05-19 18:03:35
+-- Dump completed on 2025-05-25 18:39:59
