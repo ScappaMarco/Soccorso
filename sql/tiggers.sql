@@ -18,6 +18,9 @@ drop trigger if exists vincolo_data_aggiornamenti_on_update;
 drop trigger if exists vincolo_data_missione_on_insert;
 drop trigger if exists vincolo_data_missione_on_update;
 drop trigger if exists vincolo_stato_richiesta;
+drop trigger if exists avanza_stato_richiesta;
+drop trigger if exists operatore_caposquadra_duplicato_on_insert;
+drop trigger if exists operatore_caposquadra_duplicato_on_update;
 
 delimiter $
 -- trigger utilizzato per fare un aggiornamento a catena anche su richiesta ogni qualvolta venga inserito una conclusione ad una missione
@@ -190,7 +193,7 @@ for each row
     begin
         DECLARE timestamp_arrivo_r timestamp;
 
-        SELECT r.timestamo_arrivo INTO timestamp_arrivo_r
+        SELECT r.timestamp_arrivo INTO timestamp_arrivo_r
         from richiesta r
         WHERE r.ID = NEW.ID_richiesta;
 
@@ -206,7 +209,7 @@ for each row
     begin
         DECLARE timestamp_arrivo_r timestamp;
 
-        SELECT r.timestamo_arrivo INTO timestamp_arrivo_r
+        SELECT r.timestamp_arrivo INTO timestamp_arrivo_r
         from richiesta r
         WHERE r.ID = NEW.ID_richiesta;
 
@@ -216,6 +219,7 @@ for each row
         END IF;
     end $
 
+-- Il seguente trigger previene la creazione di missioni associate a richieste non ancora convalidate
 create trigger vincolo_stato_richiesta
 before insert on missione 
 for each row
@@ -226,14 +230,52 @@ for each row
         
         if stato_richiesta = 'in_attesa' then 
             SIGNAL SQLSTATE '45000'
-                SET MESSAGE_TEXT = "Non puoi creare una missione associata a questa richiesta, dato che non è ancora stata convalidata";
+                SET MESSAGE_TEXT = "Non puoi creare una missione associata a questa richiesta, dato che non è ancora stata convalidata.";
         end if;
         
         if stato_richiesta = 'in_corso' or stato_richiesta = 'terminata' then
         SIGNAL SQLSTATE '45000'
-                SET MESSAGE_TEXT = "Non puoi creare una missione associata a questa richiesta, dato che la missione è già stata creata";
+                SET MESSAGE_TEXT = "Non puoi creare una missione associata a questa richiesta, dato che la missione è già stata creata.";
         end if;
     end$
 
+create trigger avanza_stato_richiesta
+after insert on missione
+for each row
+    begin
+        update richiesta set stato = "in_corso" where ID = NEW.ID_richiesta;
+    end $
+
+create trigger operatore_caposquadra_duplicato_on_insert
+before insert on squadraOperatore
+for each row
+    begin
+        declare var_id_caposquadra INT;
+
+        SELECT s.ID_operatore_caposquadra INTO var_id_caposquadra
+        FROM squadra s 
+        WHERE ID = NEW.ID_squadra;
+
+        IF var_id_caposquadra = NEW.ID_operatore THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = "Non puoi inserire questo operatore all'interno della squadra in quanto è il caposquadra.";
+        END IF;
+    end $
+
+create trigger operatore_caposquadra_duplicato_on_update
+before update on squadraOperatore
+for each row
+    begin
+        declare var_id_caposquadra INT;
+
+        SELECT s.ID_operatore_caposquadra INTO var_id_caposquadra
+        FROM squadra s 
+        WHERE ID = NEW.ID_squadra;
+
+        IF var_id_caposquadra = NEW.ID_operatore THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = "Non puoi inserire questo operatore all'interno della squadra in quanto è il caposquadra.";
+        END IF;
+    end $
 
 delimiter ;
