@@ -21,6 +21,8 @@ drop trigger if exists vincolo_stato_richiesta;
 drop trigger if exists avanza_stato_richiesta;
 drop trigger if exists operatore_caposquadra_duplicato_on_insert;
 drop trigger if exists operatore_caposquadra_duplicato_on_update;
+drop trigger if exists settaggio_stato_operatori_on_insert_missione;
+drop trigger if exists settaggio_stato_operatori_on_insert_conclusione;
 
 delimiter $
 -- trigger utilizzato per fare un aggiornamento a catena anche su richiesta ogni qualvolta venga inserito una conclusione ad una missione
@@ -246,6 +248,7 @@ for each row
         update richiesta set stato = "in_corso" where ID = NEW.ID_richiesta;
     end $
 
+-- I seguenti trigger si occupano di prevenire che un operatore caposquadra venga inserito di nuovo nella suadra che comanda (insert e update)
 create trigger operatore_caposquadra_duplicato_on_insert
 before insert on squadraOperatore
 for each row
@@ -278,4 +281,49 @@ for each row
         END IF;
     end $
 
+create trigger settaggio_stato_operatori_on_insert_missione
+after insert on missione
+for each row
+    begin
+        declare var_id_op_caposquadra INT;
+
+        UPDATE operatore o
+        JOIN squadraOperatore sqo ON o.ID = sqo.ID_operatore
+        SET o.occupato = True
+        WHERE sqo.ID_squadra = NEW.ID_squadra;
+
+        SELECT sq.ID_operatore_caposquadra into var_id_op_caposquadra
+        FROM squadra sq
+        WHERE sq.ID = NEW.ID_squadra;
+
+        UPDATE operatore o
+        SET o.occupato = TRUE
+        WHERE o.ID = var_id_op_caposquadra;
+    end$
+
+create trigger settaggio_stato_operatori_on_insert_conclusione
+after insert on conclusioni
+for each row
+    begin
+        declare id_squadra_missione INT;
+        declare id_operatore_caposquadra INT;
+
+        SELECT m.ID_squadra INTO id_squadra_missione
+        FROM missione m
+        WHERE m.ID = NEW.ID_missione;
+
+        UPDATE operatore o
+        JOIN squadraOperatore sqo ON o.ID = sqo.ID_operatore
+        SET o.occupato = FALSE
+        WHERE sqo.ID_squadra = id_squadra_missione; 
+
+        SELECT s.ID_operatore_caposquadra INTO id_operatore_caposquadra
+        FROM squadra s
+        WHERE s.ID = id_squadra_missione;
+
+        UPDATE operatore o
+        SET o.occupato = FALSE
+        WHERE o.ID = id_operatore_caposquadra;
 delimiter ;
+
+-- Aggiungere campo "quantità" in materiale per gestire la seguente logica: ogni qualvolta che un materiale viene assegnato a una missione questo diminuisce la sua quantità di 1 unità; quando la missione termina la sua quantità aumenta di 1 unità. Stesso discorso per i mezzi, ma con quantità 1 (campo occupato True o False)
