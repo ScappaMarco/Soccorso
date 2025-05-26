@@ -227,6 +227,7 @@ CREATE TABLE `operatore` (
   `data_nascita` date NOT NULL,
   `email` varchar(40) DEFAULT NULL,
   `matricola` int unsigned NOT NULL,
+  `occupato` boolean NOT NULL DEFAULT FALSE,
   PRIMARY KEY (`ID`),
   UNIQUE KEY `matricola` (`matricola`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

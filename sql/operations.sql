@@ -4,6 +4,7 @@ drop function if exists inserisci_richiesta_timestamp_corrente;
 drop function if exists inserisci_richiesta_timestamp_personalizzato;
 drop procedure if exists aggiungi_immagine_richiesta;
 drop procedure if exists termina_missione;
+drop function if exists crea_missione_associata;
 
 DELIMITER $
 -- per l'inserimento della richiesta abbiamo creato 2 funzioni differenti: la prima che inserisce la richiesta con il timestamp di default (che è quello attuale), e la seconda che invece prende in input un dato timestamp aggiuntivo, in modo da poter aggiungere se necessario richieste non arrivate sul momento.

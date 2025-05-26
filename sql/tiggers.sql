@@ -17,6 +17,7 @@ drop trigger if exists vincolo_data_aggiornamenti_on_insert;
 drop trigger if exists vincolo_data_aggiornamenti_on_update;
 drop trigger if exists vincolo_data_missione_on_insert;
 drop trigger if exists vincolo_data_missione_on_update;
+drop trigger if exists vincolo_stato_richiesta;
 
 delimiter $
 -- trigger utilizzato per fare un aggiornamento a catena anche su richiesta ogni qualvolta venga inserito una conclusione ad una missione
