@@ -29,7 +29,6 @@ email_segnalante varchar(40), timestamp_arrivo timestamp, descrizione text, indi
 			return ID_toReturn;
 		end$
         
-DELIMITER $
 CREATE DEFINER=`root`@`localhost` PROCEDURE `aggiungi_immagine_richiesta`(in ID_richiesta INT, in file_immagine blob, in didascalia_immagine varchar(30))
 	begin
 		update richiesta set file_immagine = file_immagine, didascalia_immagine = didascalia_immagine where ID = ID_richiesta;
@@ -40,5 +39,15 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `termina_missione`(in ID_missione in
 		insert into conclusioni (ID_missione, ID_amministratore, livello_successo, timestamp_fine) values (ID_missione, ID_amministratore, livello_successo, timestamp_fine);
         -- l'aggiornamento dello stato della richiesta a "terminata" avviene tramite trigger after insert su "conclusioni".
 	end $
+
+CREATE DEFINER=`root`@`localhost` FUNCTION `crea_missione_associata`(timestamp_inizio datetime, obiettivo text, descrizione text, ID_squadra int, ID_richiesta int) RETURNS int
+    DETERMINISTIC
+    begin
+		declare ID_toReturn int unsigned;
+		insert into missione (timestamp_inizio, obiettivo, descrizione, ID_squadra, ID_richiesta)
+        values (timestamp_inizio, obiettivo, descrizione, ID_squadra, ID_richiesta);
+        set ID_toReturn = last_insert_id();
+		return ID_toReturn;
+	end$
 
 DELIMITER ;

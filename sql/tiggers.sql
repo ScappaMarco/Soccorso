@@ -215,4 +215,24 @@ for each row
         END IF;
     end $
 
+create trigger vincolo_stato_richiesta
+before insert on missione 
+for each row
+    begin
+        declare stato_richiesta enum ('in_attesa', 'convalidata', 'in_corso', 'terminata');
+        
+        select r.stato into stato_richiesta from richiesta r where ID = new.ID_richiesta;
+        
+        if stato_richiesta = 'in_attesa' then 
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = "Non puoi creare una missione associata a questa richiesta, dato che non è ancora stata convalidata";
+        end if;
+        
+        if stato_richiesta = 'in_corso' or stato_richiesta = 'terminata' then
+        SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = "Non puoi creare una missione associata a questa richiesta, dato che la missione è già stata creata";
+        end if;
+    end$
+
+
 delimiter ;
