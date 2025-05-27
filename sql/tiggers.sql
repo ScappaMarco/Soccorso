@@ -23,6 +23,11 @@ drop trigger if exists operatore_caposquadra_duplicato_on_insert;
 drop trigger if exists operatore_caposquadra_duplicato_on_update;
 drop trigger if exists settaggio_stato_operatori_on_insert_missione;
 drop trigger if exists settaggio_stato_operatori_on_insert_conclusione;
+drop trigger if exists vincolo_data_conseguimento_patante_on_insert;
+drop trigger if exists vincolo_data_conseguimento_patante_on_update;
+drop trigger if exists vincolo_aggiornamento_quantita_totale_materiale;
+drop trigger if exists restituzione_materiali_missione;
+drop trigger if exists vincolo_conclusione_missione_terminata;
 
 delimiter $
 -- trigger utilizzato per fare un aggiornamento a catena anche su richiesta ogni qualvolta venga inserito una conclusione ad una missione
@@ -325,6 +330,106 @@ for each row
         SET o.occupato = FALSE
         WHERE o.ID = id_operatore_caposquadra;
     end$
+
+create trigger vincolo_data_conseguimento_patante_on_insert
+before insert on patenteOperatore
+for each row
+    begin
+        declare data_conseguimento_patente date;
+        declare data_nascita_operatore date;
+
+        SET data_conseguimento_patente = NEW.data_conseguimento;
+
+        SELECT o.data_nascita INTO data_nascita_operatore
+        FROM operatore o
+        WHERE o.ID = NEW.ID_operatore;
+
+        IF data_conseguimento_patente > NOW() THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'La data di conseguimento della patente non è valida: riportare una data nel passato.';
+        END IF;
+
+        IF data_conseguimento_patente < data_nascita_operatore THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'La data di conseguimento della patente non è valida: impostare una data successiva alla data di nascita ';
+        END IF;
+    end$
+
+create trigger vincolo_data_conseguimento_patante_on_update
+before update on patenteOperatore
+for each row
+    begin
+        declare data_conseguimento_patente date;
+        declare data_nascita_operatore date;
+
+        SET data_conseguimento_patente = NEW.data_conseguimento;
+
+        SELECT o.data_nascita INTO data_nascita_operatore
+        FROM operatore o
+        WHERE o.ID = NEW.ID_operatore;
+
+        IF data_conseguimento_patente > NOW() THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'La data di conseguimento della patente non è valida: riportare una data nel passato.';
+        END IF;
+
+        IF data_conseguimento_patente <= data_nascita_operatore THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'La data di conseguimento della patente non è valida: impostare una data successiva alla data di nascita ';
+        END IF;
+    end$
+
+create trigger vincolo_aggiornamento_quantita_totale_materiale
+after insert on missioneMateriale
+for each row
+    begin
+        declare quantita_totale_materiale INT;
+
+        SELECT m.quantita_totale INTO quantita_totale_materiale
+        FROM materiale m
+        WHERE m.ID = NEW.ID_materiale;
+        IF quantita_totale_materiale = 0 THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'La quantità del materiale selezionata non è valida: quantità totale pari a 0.';
+        END IF;
+
+        IF NEW.quantita > quantita_totale_materiale THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'La quantità del materiale selezionata non è valida: eccede la massima disponibilità.';
+        ELSE
+            UPDATE materiale
+            SET quantita_totale = quantita_totale - NEW.quantita
+            WHERE ID = NEW.ID_materiale;
+        END IF;
+    end$
+
+create trigger restituzione_materiali_missione
+after insert on conclusioni
+for each row
+    begin
+        UPDATE materiale m
+        JOIN missioneMateriale mm ON mm.ID_materiale = m.ID
+        SET m.quantita_totale = m.quantita_totale + mm.quantita
+        WHERE mm.ID_missione = NEW.ID_missione;
+    end$
+
+create trigger vincolo_conclusione_missione_terminata
+before insert on conclusioni
+for each row
+    begin
+        declare stato_richiesta enum("in_attesa", "convalidata", "in_corso", "terminata");
+
+        SELECT r.stato INTO stato_richiesta
+        FROM missione m
+        JOIN richiesta r ON m.ID_richiesta = r.ID
+        Where m.id = NEW.ID_missione;
+
+        IF stato_richiesta = "terminata" THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'Impossibile concludere questa richiesta: la missione è già conclusa.';
+        END IF;
+    end$
+    
 delimiter ;
 
 -- Aggiungere campo "quantità" in materiale per gestire la seguente logica: ogni qualvolta che un materiale viene assegnato a una missione questo diminuisce la sua quantità di 1 unità; quando la missione termina la sua quantità aumenta di 1 unità. Stesso discorso per i mezzi, ma con quantità 1 (campo occupato True o False)
