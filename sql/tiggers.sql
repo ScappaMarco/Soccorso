@@ -324,6 +324,7 @@ for each row
         UPDATE operatore o
         SET o.occupato = FALSE
         WHERE o.ID = id_operatore_caposquadra;
+    end$
 delimiter ;
 
 -- Aggiungere campo "quantità" in materiale per gestire la seguente logica: ogni qualvolta che un materiale viene assegnato a una missione questo diminuisce la sua quantità di 1 unità; quando la missione termina la sua quantità aumenta di 1 unità. Stesso discorso per i mezzi, ma con quantità 1 (campo occupato True o False)
