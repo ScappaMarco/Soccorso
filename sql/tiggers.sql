@@ -177,6 +177,28 @@ create trigger vincolo_data_aggiornamenti_on_insert
 before insert on aggiornamenti
 for each row
     begin
+        declare timestamp_inizio_missione_associata datetime;
+        declare stato_missione_associata enum("in_attesa", "convalidata", "in_corso", "terminata");
+
+        SELECT r.stato INTO stato_missione_associata
+        FROM richiesta r
+        JOIN missione m ON m.ID_richiesta = r.ID
+        WHERE m.ID = NEW.ID_missione;
+
+        SELECT m.timestamp_inizio INTO timestamp_inizio_missione_associata
+        FROM missione m
+        WHERE m.ID = NEW.ID_missione;
+
+        IF stato_missione_associata = "terminata" THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = "Impossibile aggiungere un aggiornamento a questa missione dato che è terminata.";
+        END IF;
+
+        IF NEW.timestamp_immissione < timestamp_inizio_missione_associata THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'Non puoi immettere un aggiornamneto con questa data: la data selezionata viene prima della data di inizio della missione assocista';
+        END IF;
+
         IF NEW.timestamp_immissione > NOW() THEN 
             SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'La data di immissione di un aggiornamento deve essere nel passato.';
@@ -187,6 +209,28 @@ create trigger vincolo_data_aggiornamenti_on_update
 before update on aggiornamenti
 for each row
     begin
+        declare timestamp_inizio_missione_associata datetime;
+        declare stato_missione_associata enum("in_attesa", "convalidata", "in_corso", "terminata");
+
+        SELECT r.stato INTO stato_missione_associata
+        FROM richiesta r
+        JOIN missione m ON m.ID_richiesta = r.ID
+        WHERE m.ID = NEW.ID_missione;
+
+        SELECT m.timestamp_inizio INTO timestamp_inizio_missione_associata
+        FROM missione m
+        WHERE m.ID = NEW.ID_missione;
+
+        IF stato_missione_associata = "terminata" THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = "Impossibile aggiungere un aggiornamento a questa missione dato che è terminata.";
+        END IF;
+
+        IF NEW.timestamp_immissione < timestamp_inizio_missione_associata THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'Non puoi immettere un aggiornamneto con questa data: la data selezionata viene prima della data di inizio della missione assocista';
+        END IF;
+
         IF NEW.timestamp_immissione > NOW() THEN 
             SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'La data di immissione di un aggiornamento deve essere nel passato.';
@@ -204,9 +248,14 @@ for each row
         from richiesta r
         WHERE r.ID = NEW.ID_richiesta;
 
-        IF NEW.timestamp_inizio <= timestamp_arrivo_r OR NEW.timestamp_inizio > NOW() THEN
+        IF NEW.timestamp_inizio <= timestamp_arrivo_r THEN
             SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'La data di inizio missione non può essere minore della data di arrivo della richiesta associata oppure nel passato.';
+            SET MESSAGE_TEXT = 'La data di inizio missione non può essere minore della data di arrivo della richiesta associata';
+        END IF;
+
+        IF NEW.timestamp_inizio > NOW() THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'La data di inizio missione non è valida: data futura immessa.';
         END IF;
     end $
 
