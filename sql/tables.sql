@@ -43,6 +43,7 @@ CREATE TABLE `abilitaAmministratore` (
   `ID_amministratore` int unsigned NOT NULL,
   `ID_abilita` int unsigned NOT NULL,
   PRIMARY KEY (`ID_amministratore`,`ID_abilita`),
+  KEY `abilita_amministratore` (`ID_abilita`),
   CONSTRAINT `abilita_amministratore` FOREIGN KEY (`ID_abilita`) REFERENCES `abilita` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `amministratore_abilita` FOREIGN KEY (`ID_amministratore`) REFERENCES `amministratore` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -59,6 +60,7 @@ CREATE TABLE `abilitaOperatore` (
   `ID_abilita` int unsigned NOT NULL,
   `ID_operatore` int unsigned NOT NULL,
   PRIMARY KEY (`ID_abilita`,`ID_operatore`),
+  KEY `operatore_abilita` (`ID_operatore`),
   CONSTRAINT `abilita_operatore` FOREIGN KEY (`ID_abilita`) REFERENCES `abilita` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `operatore_abilita` FOREIGN KEY (`ID_operatore`) REFERENCES `operatore` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -101,7 +103,7 @@ CREATE TABLE `amministratore` (
   `matricola` int unsigned DEFAULT NULL,
   PRIMARY KEY (`ID`),
   UNIQUE KEY `matricola` (`matricola`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -117,6 +119,7 @@ CREATE TABLE `conclusioni` (
   `livello_successo` smallint NOT NULL,
   `timestamp_fine` datetime NOT NULL,
   PRIMARY KEY (`ID_missione`,`ID_amministratore`),
+  KEY `amministratore_missione_conc` (`ID_amministratore`),
   CONSTRAINT `amministratore_missione_conc` FOREIGN KEY (`ID_amministratore`) REFERENCES `amministratore` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `missione_amministratore_conc` FOREIGN KEY (`ID_missione`) REFERENCES `missione` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `check_livello_successo` CHECK ((`livello_successo` between 1 and 5))
@@ -134,9 +137,10 @@ CREATE TABLE `materiale` (
   `ID` int unsigned NOT NULL AUTO_INCREMENT,
   `nome` varchar(20) NOT NULL,
   `descrizione` text,
+  `quantita_totale` int NOT NULL,
   PRIMARY KEY (`ID`),
   UNIQUE KEY `nome` (`nome`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -153,6 +157,7 @@ CREATE TABLE `mezzo` (
   `modello` varchar(30) NOT NULL,
   `tipologia` varchar(30) NOT NULL,
   `descrizione` text,
+  `occupato` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`ID`),
   UNIQUE KEY `targa` (`targa`),
   CONSTRAINT `mezzo_chk_1` CHECK (regexp_like(`targa`,_utf8mb4'^[A-Z]{2}[0-9]{3}[A-Z]{2}$'))
@@ -176,9 +181,9 @@ CREATE TABLE `missione` (
   PRIMARY KEY (`ID`),
   KEY `richiesta_associata` (`ID_richiesta`),
   KEY `squadra_associata` (`ID_squadra`),
-  CONSTRAINT `richiesta_associata` FOREIGN KEY (`ID_richiesta`) REFERENCES `richiesta` (`ID`) ON UPDATE CASCADE,
+  CONSTRAINT `richiesta_associata` FOREIGN KEY (`ID_richiesta`) REFERENCES `richiesta` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `squadra_associata` FOREIGN KEY (`ID_squadra`) REFERENCES `squadra` (`ID`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -191,7 +196,9 @@ DROP TABLE IF EXISTS `missioneMateriale`;
 CREATE TABLE `missioneMateriale` (
   `ID_missione` int unsigned NOT NULL,
   `ID_materiale` int unsigned NOT NULL,
+  `quantita` int unsigned NOT NULL DEFAULT '1',
   PRIMARY KEY (`ID_missione`,`ID_materiale`),
+  KEY `materiale_missione` (`ID_materiale`),
   CONSTRAINT `materiale_missione` FOREIGN KEY (`ID_materiale`) REFERENCES `materiale` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `missione_materiale` FOREIGN KEY (`ID_missione`) REFERENCES `missione` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -208,6 +215,7 @@ CREATE TABLE `missioneMezzo` (
   `ID_missione` int unsigned NOT NULL,
   `ID_mezzo` int unsigned NOT NULL,
   PRIMARY KEY (`ID_missione`,`ID_mezzo`),
+  KEY `mezzo_missione` (`ID_mezzo`),
   CONSTRAINT `mezzo_missione` FOREIGN KEY (`ID_mezzo`) REFERENCES `mezzo` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `missione_mezzo` FOREIGN KEY (`ID_missione`) REFERENCES `missione` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -225,12 +233,12 @@ CREATE TABLE `operatore` (
   `nome` varchar(30) DEFAULT NULL,
   `cognome` varchar(30) DEFAULT NULL,
   `data_nascita` date NOT NULL,
+  `occupato` tinyint(1) NOT NULL DEFAULT '0',
   `email` varchar(40) DEFAULT NULL,
   `matricola` int unsigned NOT NULL,
-  `occupato` boolean NOT NULL DEFAULT FALSE,
   PRIMARY KEY (`ID`),
   UNIQUE KEY `matricola` (`matricola`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -258,7 +266,9 @@ DROP TABLE IF EXISTS `patenteOperatore`;
 CREATE TABLE `patenteOperatore` (
   `ID_operatore` int unsigned NOT NULL,
   `ID_patente` int unsigned NOT NULL,
+  `data_conseguimento` date NOT NULL,
   PRIMARY KEY (`ID_operatore`,`ID_patente`),
+  KEY `patente_operatore` (`ID_patente`),
   CONSTRAINT `operatore_patente` FOREIGN KEY (`ID_operatore`) REFERENCES `operatore` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `patente_operatore` FOREIGN KEY (`ID_patente`) REFERENCES `patente` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -275,7 +285,7 @@ CREATE TABLE `richiesta` (
   `ID` int unsigned NOT NULL AUTO_INCREMENT,
   `stringa_convalida` varchar(20) NOT NULL,
   `indirizzo_ip_origine` varchar(12) NOT NULL,
-  `stato` enum('in_attesa','convalidata','in_corso','terminata') DEFAULT 'in_attesa',
+  `stato` enum('in_attesa','convalidata','in_corso','terminata','annullata','ignorata') DEFAULT 'in_attesa',
   `nome_segnalante` varchar(20) DEFAULT NULL,
   `email_segnalante` varchar(40) DEFAULT NULL,
   `timestamp_arrivo` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -286,7 +296,7 @@ CREATE TABLE `richiesta` (
   `coordinate` varchar(20) NOT NULL,
   PRIMARY KEY (`ID`),
   UNIQUE KEY `stringa_convalida` (`stringa_convalida`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -303,7 +313,7 @@ CREATE TABLE `squadra` (
   PRIMARY KEY (`ID`),
   KEY `operatore_caposquadra` (`ID_operatore_caposquadra`),
   CONSTRAINT `operatore_caposquadra` FOREIGN KEY (`ID_operatore_caposquadra`) REFERENCES `operatore` (`ID`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -318,6 +328,7 @@ CREATE TABLE `squadraOperatore` (
   `ID_squadra` int unsigned NOT NULL,
   `ruolo` varchar(20) NOT NULL,
   PRIMARY KEY (`ID_operatore`,`ID_squadra`),
+  KEY `squadra_operatore` (`ID_squadra`),
   CONSTRAINT `operatore_squadra` FOREIGN KEY (`ID_operatore`) REFERENCES `operatore` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `squadra_operatore` FOREIGN KEY (`ID_squadra`) REFERENCES `squadra` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -332,4 +343,4 @@ CREATE TABLE `squadraOperatore` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-05-25 18:39:59
+-- Dump completed on 2025-05-28 18:55:28

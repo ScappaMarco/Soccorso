@@ -1,5 +1,8 @@
 use soccorso;
 
+/*TRIGGER*/
+
+/*drop if exists*/
 drop trigger if exists termina_richiesta_su_aggiunta;
 drop trigger if exists email_minuscula_operatore_on_insert;
 drop trigger if exists email_minuscola_amministratore_on_insert;
@@ -28,10 +31,16 @@ drop trigger if exists vincolo_data_conseguimento_patante_on_update;
 drop trigger if exists vincolo_aggiornamento_quantita_totale_materiale;
 drop trigger if exists restituzione_materiali_missione;
 drop trigger if exists vincolo_conclusione_missione_terminata;
+drop trigger if exists eliminazione_missione_in_corso;
+drop trigger if exists aggiunta_operatore_squadra_impegnata;
+drop trigger if exists aggiunta_operatore_caposquadra_squadra_occupata;
 
 delimiter $
--- trigger utilizzato per fare un aggiornamento a catena anche su richiesta ogni qualvolta venga inserito una conclusione ad una missione
--- testato: funzionante
+/*
+AZIONE: after insert on conclusioni
+Il seguente trigger successivamente a un inserimento sulla tabella conclusioni si occupa di settare lo stato della 
+richiesta associata alla missione conclusa a "terminata"
+*/
 create trigger termina_richiesta_su_aggiunta
 after insert on conclusioni
 for each row
@@ -51,51 +60,82 @@ for each row
 			update richiesta set stato = "terminata" where ID = rid;
 		end if;
 	end $
+/*---------------------------------------------------------*/
 
--- I seguenti trigger si occupano di convertire la mail in minuscolo, per operatore, amministratore e email segnalante (in richiesta)
+/*
+AZIONE: before insert on operatore
+I seguenti trigger si occupa di convertire l'email degli operatori e amministratori che sta per essere inserito a minuscola, 
+così da avere uno standard sulla sintassi delle email
+*/
 create trigger email_minuscula_operatore_on_insert
 before insert on operatore
 for each row
     begin
         SET NEW.email = LOWER(NEW.email);
     end $
+/*---------------------------------------------------------*/
 
+/*
+AZIONE: before insert on amministratore
+*/
 create trigger email_minuscola_amministratore_on_insert
 before insert on amministratore
 for each row
     begin
         SET NEW.email = LOWER(NEW.email);
     end $
+/*---------------------------------------------------------*/
 
+/*
+AZIONE: before update on operatore
+*/
 create trigger email_minuscula_operatore_on_update
 before update on operatore
 for each row
     begin
         SET NEW.email = LOWER(NEW.email);
     end $
+/*---------------------------------------------------------*/
 
+/*
+AZIONE: before update on amministratore
+*/
 create trigger email_minuscola_amministratore_on_update
 before update on amministratore
 for each row
     begin
         SET NEW.email = LOWER(NEW.email);
     end $
+/*---------------------------------------------------------*/
 
+/*
+AZIONE: before insert on richiesta
+I seguenti trigger si occupano di convertire l'email del segnalante a minuscolo (insert e update)
+*/
 create trigger email_segnalante_minuscola_on_insert
 before insert on richiesta
 for each row
     begin
         SET NEW.email_segnalante = LOWER(NEW.email_segnalante);
     end $
+/*---------------------------------------------------------*/
 
+/*
+AZIONE: before update on richiesta
+*/
 create trigger email_segnalante_minuscola_on_update
 before update on richiesta
 for each row
     begin
         SET NEW.email_segnalante = LOWER(NEW.email_segnalante);
     end $
+/*---------------------------------------------------------*/
 
--- I seguenti trigger sono utilizzati per verificare che l'età degli amministratori ed operatori sia compresa tra 18 e 70
+/*
+AZIONE: before insert on operatore
+I seguenti trigger si occupano di verificare che l'età degli amministratori / operatori inseriti sia di almeno 18 anni
+e massimo 70 anni (insert e update)
+*/
 create trigger vincolo_eta_operatore_on_insert
 before insert on operatore
 for each row
@@ -109,7 +149,11 @@ for each row
             SET MESSAGE_TEXT = "Gli operatori possono avere età compresa tra 18 e 70 anni.";
         END IF;
     end $
+/*---------------------------------------------------------*/
 
+/*
+AZIONE: before insert on amministratore
+*/
 create trigger vincolo_eta_amministratore_on_insert
 before insert on amministratore
 for each row
@@ -123,7 +167,11 @@ for each row
             SET MESSAGE_TEXT = "Gli amministratori possono avere età compresa tra 18 e 70 anni.";
         END IF;
     end $
+/*---------------------------------------------------------*/
 
+/*
+AZIONE: before update on operatore
+*/
 create trigger vincolo_eta_operatore_on_update
 before update on operatore
 for each row
@@ -137,7 +185,11 @@ for each row
             SET MESSAGE_TEXT = "Gli operatori possono avere età compresa tra 18 e 70 anni.";
         END IF;
     end $
+/*---------------------------------------------------------*/
 
+/*
+AZIONE: before update on amministratore
+*/
 create trigger vincolo_eta_amministratore_on_update
 before update on amministratore
 for each row
@@ -151,18 +203,37 @@ for each row
             SET MESSAGE_TEXT = "Gli amministratori possono avere età compresa tra 18 e 70 anni.";
         END IF;
     end $
+/*---------------------------------------------------------*/
 
--- I seguenti trigger hanno lo scopo di verificare che la data immessa per le conclusioni e gli aggiornamenti siano minori o uguali rispetto a quella odierna (rappresentata da NOW())
+/*
+AZIONE: before insert on conclusioni
+I seguenti trigger prevengono l'inserimento di conclusioni con data maggiore di quella odierna (insert e update)
+*/
 create trigger vincolo_data_conclusione_on_insert
 before insert on conclusioni
 for each row
     begin
+        declare timestamp_inizio_missione datetime;
+
+        SELECT m.timestamp_inizio INTO timestamp_inizio_missione
+        FROM missione m
+        WHERE m.ID = NEW.ID_missione;
+
+        IF NEW.timestamp_fine < timestamp_inizio_missione THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'Data immissione conclusione missione invalida, dato che la data di conclusione viene prima della data di inizio missione';
+        END IF;
+        
         IF NEW.timestamp_fine > NOW() then
             SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'La data di fine missione deve essere nel passato.';
         END IF;
     end $
+/*---------------------------------------------------------*/
 
+/*
+AZIONE: before update on conclusioni
+*/
 create trigger vincolo_data_conclusione_on_update
 before update on conclusioni
 for each row
@@ -280,7 +351,7 @@ create trigger vincolo_stato_richiesta
 before insert on missione 
 for each row
     begin
-        declare stato_richiesta enum ('in_attesa', 'convalidata', 'in_corso', 'terminata');
+        declare stato_richiesta enum ('in_attesa', 'convalidata', 'in_corso', 'terminata', 'annullata', 'ignorata');
         
         select r.stato into stato_richiesta from richiesta r where ID = new.ID_richiesta;
         
@@ -288,7 +359,17 @@ for each row
             SIGNAL SQLSTATE '45000'
                 SET MESSAGE_TEXT = "Non puoi creare una missione associata a questa richiesta, dato che non è ancora stata convalidata.";
         end if;
-        
+
+        IF stato_richiesta = 'ignorata' THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'Non puoi creare una missione associata a questa richiesta dato che è stata ignorata.';
+        END IF;
+
+        IF stato_richiesta = 'annullata' THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'Non puoi creare una missione associata a questa richiesta dato che è stata annullata.';
+        END IF;
+
         if stato_richiesta = 'in_corso' or stato_richiesta = 'terminata' then
         SIGNAL SQLSTATE '45000'
                 SET MESSAGE_TEXT = "Non puoi creare una missione associata a questa richiesta, dato che la missione è già stata creata.";
@@ -478,7 +559,67 @@ for each row
                 SET MESSAGE_TEXT = 'Impossibile concludere questa richiesta: la missione è già conclusa.';
         END IF;
     end$
-    
-delimiter ;
 
+create trigger eliminazione_missione_in_corso
+before delete on missione
+for each row
+    begin
+        declare stato_richiesta enum("in_attesa", "convalidata", "in_corso", "terminata", "annullata", "ignorata");
+
+        SELECT r.stato INTO stato_richiesta
+        FROM richiesta r 
+        WHERE r.ID = OLD.ID_richiesta;
+        
+        IF stato_richiesta = "in_corso" THEN
+            UPDATE richiesta SET stato = 'annullata' WHERE ID = OLD.ID_richiesta;
+
+            UPDATE materiale m
+            JOIN missioneMateriale mm ON m.ID = mm.ID_materiale
+            SET m.quantita_totale = m.quantita_totale + mm.quantita
+            WHERE mm.ID_missione = OLD.ID;
+
+            UPDATE operatore o
+            JOIN squadraOperatore sqo ON o.ID = sqo.ID_operatore
+            SET o.occupato = FALSE
+            WHERE sqo.ID_squadra = OLD.ID_squadra;
+
+            UPDATE operatore SET occupato = FALSE WHERE ID = 
+                (SELECT sq.ID_operatore_caposquadra FROM squadra sq WHERE sq.ID = OLD.ID_squadra);
+                -- utilizzo sottoquery
+        END IF;
+    end$
+
+create trigger aggiunta_operatore_squadra_impegnata
+before insert on squadraOperatore
+for each row
+    begin
+        IF EXISTS (
+            SELECT 1
+            FROM missione m
+            JOIN richiesta r on m.ID_richiesta = r.ID
+            WHERE m.ID_squadra = NEW.ID_squadra AND r.stato = 'in_corso'
+        ) THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'Impossibile aggiungere un operatore a questa squadra in quanto questa è impegnata in una missione in corso.';
+        END IF;
+    end$
+
+create trigger aggiunta_operatore_caposquadra_squadra_occupata
+before update on squadra
+for each row
+    begin
+        IF OLD.ID_operatore_caposquadra <> NEW.ID_operatore_caposquadra THEN
+            IF EXISTS (
+                SELECT 1
+                FROM missione m
+                JOIN richiesta r ON m.ID_richiesta = r.ID
+                WHERE m.ID_squadra = OLD.ID AND r.stato = 'in_corso'
+            ) THEN 
+                SIGNAL SQLSTATE '45000'
+                    SET MESSAGE_TEXT = 'Impossibile cambiare operatore caposquadra dato che la squadra è impegnata in una missione in corso.';
+            END IF;
+        END IF;
+    end $
+
+delimiter ;
 -- Aggiungere campo "quantità" in materiale per gestire la seguente logica: ogni qualvolta che un materiale viene assegnato a una missione questo diminuisce la sua quantità di 1 unità; quando la missione termina la sua quantità aumenta di 1 unità. Stesso discorso per i mezzi, ma con quantità 1 (campo occupato True o False)
