@@ -29,11 +29,18 @@ drop trigger if exists settaggio_stato_operatori_on_insert_conclusione;
 drop trigger if exists vincolo_data_conseguimento_patante_on_insert;
 drop trigger if exists vincolo_data_conseguimento_patante_on_update;
 drop trigger if exists vincolo_aggiornamento_quantita_totale_materiale;
-drop trigger if exists restituzione_materiali_missione;
+drop trigger if exists restituzione_materiali_e_mezzi_missione;
 drop trigger if exists vincolo_conclusione_missione_terminata;
 drop trigger if exists eliminazione_missione_in_corso;
 drop trigger if exists aggiunta_operatore_squadra_impegnata;
 drop trigger if exists aggiunta_operatore_caposquadra_squadra_occupata;
+drop trigger if exists settaggio_mezzo_occupato;
+drop trigger if exists modifica_materiali_assegnati_missione_in_corso;
+drop trigger if exists eliminazione_materiali_assegnati_missione_in_corso;
+drop trigger if exists modifica_mezzi_assegnati_missione_in_corso;
+drop trigger if exists eliminazione_mezzi_assegnati_missione_in_corso;
+drop trigger if exists vincolo_assegnazione_materiali_missione_conclusa;
+drop trigger if exists vincolo_assegnazione_mezzi_missione_conclusa;
 
 delimiter $
 /*
@@ -510,7 +517,7 @@ for each row
     end$
 
 create trigger vincolo_aggiornamento_quantita_totale_materiale
-after insert on missioneMateriale
+before insert on missioneMateriale
 for each row
     begin
         declare quantita_totale_materiale INT;
@@ -533,7 +540,7 @@ for each row
         END IF;
     end$
 
-create trigger restituzione_materiali_missione
+create trigger restituzione_materiali_e_mezzi_missione
 after insert on conclusioni
 for each row
     begin
@@ -541,13 +548,18 @@ for each row
         JOIN missioneMateriale mm ON mm.ID_materiale = m.ID
         SET m.quantita_totale = m.quantita_totale + mm.quantita
         WHERE mm.ID_missione = NEW.ID_missione;
+
+        UPDATE mezzo m
+        JOIN missioneMezzo mm ON mm.ID_mezzo = m.ID
+        SET m.occupato = FALSE
+        WHERE mm.ID_missione = NEW.ID_missione;
     end$
 
 create trigger vincolo_conclusione_missione_terminata
 before insert on conclusioni
 for each row
     begin
-        declare stato_richiesta enum("in_attesa", "convalidata", "in_corso", "terminata");
+        declare stato_richiesta enum("in_attesa", "convalidata", "in_corso", "terminata", "annullata", "ignorata");
 
         SELECT r.stato INTO stato_richiesta
         FROM missione m
@@ -576,6 +588,11 @@ for each row
             UPDATE materiale m
             JOIN missioneMateriale mm ON m.ID = mm.ID_materiale
             SET m.quantita_totale = m.quantita_totale + mm.quantita
+            WHERE mm.ID_missione = OLD.ID;
+
+            UPDATE mezzo m
+            JOIN missioneMezzo mm ON m.ID = mm.ID_mezzo
+            SET m.occupato = FALSE
             WHERE mm.ID_missione = OLD.ID;
 
             UPDATE operatore o
@@ -620,6 +637,176 @@ for each row
             END IF;
         END IF;
     end $
+
+create trigger settaggio_mezzo_occupato
+before insert on missioneMezzo
+for each row
+    begin
+        declare stato_mezzo boolean;
+
+        SELECT m.occupato INTO stato_mezzo
+        FROM mezzo m
+        WHERE m.ID = NEW.iD_mezzo;
+
+        IF stato_mezzo = TRUE THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'Il mezzo che si vuo,le utilizzare risulta occupato in una missione in corso.';
+        END IF;
+
+        UPDATE mezzo SET occupato = TRUE WHERE ID = NEW.ID_mezzo;
+    end$
+
+create trigger modifica_materiali_assegnati_missione_in_corso
+before update on missioneMateriale
+for each row
+    begin
+        declare stato_richiesta enum("in_attesa", "convalidata", "in_corso", "terminata", "annullata", "ignorata");
+
+        SELECT r.stato INTO stato_richiesta
+        FROM richiesta r
+        JOIN missione m ON m.ID_richiesta = r.ID
+        WHERE m.ID = NEW.ID_missione;
+
+        IF stato_richiesta = "in_corso" THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'Impossibile modificare questo campo: la missione associata è attualmente in corso.';
+        END IF;
+
+        IF stato_richiesta = "terminata" THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'Impossibile modificare questo campo: la missione associata è terminata.';
+        END IF;
+
+        IF stato_richiesta = "annullata" THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'Impossibile modificare questo campo: la missione associata è annullata.';
+        END IF;
+    end$
+
+create trigger eliminazione_materiali_assegnati_missione_in_corso
+before delete on missioneMateriale
+for each row
+    begin
+        declare stato_richiesta enum("in_attesa", "convalidata", "in_corso", "terminata", "annullata", "ignorata");
+
+        SELECT r.stato INTO stato_richiesta
+        FROM richiesta r
+        JOIN missione m ON m.ID_richiesta = r.ID
+        WHERE m.ID = OLD.ID_missione;
+
+        IF stato_richiesta = "in_corso" THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'Impossibile modificare questo campo: la missione associata è attualmente in corso.';
+        END IF;
+
+        IF stato_richiesta = "terminata" THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'Impossibile modificare questo campo: la missione associata è terminata.';
+        END IF;
+
+        IF stato_richiesta = "annullata" THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'Impossibile modificare questo campo: la missione associata è annullata.';
+        END IF;
+    end$
+
+create trigger modifica_mezzi_assegnati_missione_in_corso
+before update on missioneMezzo
+for each row
+    begin
+        declare stato_richiesta enum("in_attesa", "convalidata", "in_corso", "terminata", "annullata", "ignorata");
+
+        SELECT r.stato INTO stato_richiesta
+        FROM richiesta r
+        JOIN missione m ON m.ID_richiesta = r.ID
+        WHERE m.ID = NEW.ID_missione;
+
+        IF stato_richiesta = "in_corso" THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'Impossibile modificare questo campo: la missione associata è attualmente in corso.';
+        END IF;
+
+        IF stato_richiesta = "terminata" THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'Impossibile modificare questo campo: la missione associata è terminata.';
+        END IF;
+
+        IF stato_richiesta = "annullata" THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'Impossibile modificare questo campo: la missione associata è annullata.';
+        END IF;
+    end$
+
+create trigger eliminazione_mezzi_assegnati_missione_in_corso
+before delete on missioneMezzo
+for each row
+    begin
+        declare stato_richiesta enum("in_attesa", "convalidata", "in_corso", "terminata", "annullata", "ignorata");
+
+        SELECT r.stato INTO stato_richiesta
+        FROM richiesta r
+        JOIN missione m ON m.ID_richiesta = r.ID
+        WHERE m.ID = OLD.ID_missione;
+
+        IF stato_richiesta = "in_corso" THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'Impossibile modificare questo campo: la missione associata è attualmente in corso.';
+        END IF;
+
+        IF stato_richiesta = "terminata" THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'Impossibile modificare questo campo: la missione associata è terminata.';
+        END IF;
+
+        IF stato_richiesta = "annullata" THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'Impossibile modificare questo campo: la missione associata è annullata.';
+        END IF;
+    end$
+
+create trigger vincolo_assegnazione_materiali_missione_conclusa
+before insert on missioneMateriale
+for each row
+    begin
+        declare stato_richiesta enum("in_attesa", "convalidata", "in_corso", "terminata", "annullata", "ignorata");
+
+        SELECT r.stato INTO stato_richiesta
+        FROM richiesta r
+        JOIN missione m ON m.ID_richiesta = r.ID
+        WHERE m.ID = NEW.ID_missione;
+
+        IF stato_richiesta = "terminata" THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'Impossibile aggiungere materiali a una missione terminata.';
+        END IF;
+
+        IF stato_richiesta = "annullata" THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'Impossibile aggiungere materiali a una missione annullata';
+        END IF;
+    end$
+
+create trigger vincolo_assegnazione_mezzi_missione_conclusa
+before insert on missioneMezzo
+for each row
+    begin
+        declare stato_richiesta enum("in_attesa", "convalidata", "in_corso", "terminata", "annullata", "ignorata");
+
+        SELECT r.stato INTO stato_richiesta
+        FROM richiesta r
+        JOIN missione m ON m.ID_richiesta = r.ID
+        WHERE m.ID = NEW.ID_missione;
+
+        IF stato_richiesta = "terminata" THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'Impossibile aggiungere mezzi a una missione terminata.';
+        END IF;
+
+        IF stato_richiesta = "annullata" THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'Impossibile aggiungere mezzi a una missione annullata';
+        END IF;
+    end$
 
 delimiter ;
 -- Aggiungere campo "quantità" in materiale per gestire la seguente logica: ogni qualvolta che un materiale viene assegnato a una missione questo diminuisce la sua quantità di 1 unità; quando la missione termina la sua quantità aumenta di 1 unità. Stesso discorso per i mezzi, ma con quantità 1 (campo occupato True o False)
