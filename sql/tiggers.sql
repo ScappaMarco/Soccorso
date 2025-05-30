@@ -813,4 +813,16 @@ for each row
         END IF;
     end$
 
+create trigger vincolo_richiesta_ignoarata
+before update on richiesta
+for each row
+    begin
+        IF NEW.stato = 'ignorata' THEN
+            IF OLD.stato = 'in_corso' OR OLD.stato = 'terminata' OR OLD.stato = 'annullata' THEN
+                SIGNAL SQLSTATE '45000'
+                    SET MESSAGE_TEXT = 'Questa richiesta non può essere ignorata, dato che è stata già creata una missione associata.';
+            END IF;
+        END IF;
+    end$
+
 delimiter ;
