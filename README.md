@@ -25,6 +25,8 @@ Infine, gli amministratori (a seguito di un’opportuna comunicazione da parte d
 
 Ogni elemento coinvolto nelle missioni (operatori, mezzi, materiali) dovrà essere dotato anche di un proprio storico delle missioni in cui è stato coinvolto.
 
+## Operazioni
+
 Ci sono indubbiamente svariati vincoli che possono essere applicati ai contenuti di questa base di dati. L'individuazione dei vincoli e la loro implementazione (con vincoli sulle tabelle, trigger o quantomeno definendo il codice e le query necessari ad effettuarne il controllo) costituiscono un requisito importante per lo sviluppo di un progetto realistico, e ne verrà tenuto conto durante la valutazione finale.
 Operazioni da realizzare
 
