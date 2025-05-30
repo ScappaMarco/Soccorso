@@ -621,6 +621,11 @@ for each row
         END IF;
     end$
 
+create trigger modifica_operatore_squadra_impegnata
+before update on squadraOperatore
+for each row
+
+
 create trigger aggiunta_operatore_caposquadra_squadra_occupata
 before update on squadra
 for each row
@@ -809,4 +814,3 @@ for each row
     end$
 
 delimiter ;
--- Aggiungere campo "quantità" in materiale per gestire la seguente logica: ogni qualvolta che un materiale viene assegnato a una missione questo diminuisce la sua quantità di 1 unità; quando la missione termina la sua quantità aumenta di 1 unità. Stesso discorso per i mezzi, ma con quantità 1 (campo occupato True o False)

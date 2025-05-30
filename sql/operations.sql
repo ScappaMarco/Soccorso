@@ -6,6 +6,10 @@ drop procedure if exists aggiungi_immagine_richiesta;
 drop procedure if exists termina_missione;
 drop function if exists crea_missione_associata;
 
+/*
+Tutte le funzioni che inseriscono una riga in una tabella del DB restituiscono l'ID dell'elemento appena aggiunto
+*/
+
 DELIMITER $
 -- per l'inserimento della richiesta abbiamo creato 2 funzioni differenti: la prima che inserisce la richiesta con il timestamp di default (che è quello attuale), e la seconda che invece prende in input un dato timestamp aggiuntivo, in modo da poter aggiungere se necessario richieste non arrivate sul momento.
 CREATE DEFINER=`root`@`localhost` FUNCTION `inserisci_richiesta_timestamp_corrente`(stringa_convalida varchar(20), indirizzo_ip_origine varchar(12), nome_segnalante varchar(30), 
@@ -24,8 +28,10 @@ email_segnalante varchar(40), timestamp_arrivo timestamp, descrizione text, indi
     DETERMINISTIC
 		begin
 			declare ID_toReturn int unsigned;
+
 			insert into richiesta(stringa_convalida, indirizzo_ip_origine, nome_segnalante, email_segnalante, timestamp_arrivo, descrizione, indirizzo, coordinate)
 			values (stringa_convalida, indirizzo_ip_origine, nome_segnalante, email_segnalante, timestamp_arrivo, descrizione, indirizzo, coordinate);
+			
 			set ID_toReturn = last_insert_id();
 			return ID_toReturn;
 		end$
@@ -41,12 +47,27 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `termina_missione`(in ID_missione in
         -- l'aggiornamento dello stato della richiesta a "terminata" avviene tramite trigger after insert su "conclusioni".
 	end $
 
+-- In questo caso (vincolo dovuto dall'aggiunta di trigger specifici) l'id_richiesta deve essere associato ad una richiesta in stato 'convalidata'
 CREATE DEFINER=`root`@`localhost` FUNCTION `crea_missione_associata`(timestamp_inizio datetime, obiettivo text, descrizione text, ID_squadra int, ID_richiesta int) RETURNS int
     DETERMINISTIC
     begin
 		declare ID_toReturn int unsigned;
+
 		insert into missione (timestamp_inizio, obiettivo, descrizione, ID_squadra, ID_richiesta)
         values (timestamp_inizio, obiettivo, descrizione, ID_squadra, ID_richiesta);
+
+        set ID_toReturn = last_insert_id();
+		return ID_toReturn;
+	end$
+
+CREATE DEFINER=`root`@`localhost` FUNCTION `aggiungi_aggiornamento`(ID_amministratore INT, ID_missione INT, messaggio_aggiornamento TEXT) RETURNS int
+    DETERMINISTIC
+    begin
+		declare ID_toReturn int unsigned;
+
+		INSERT INTO aggiornamenti (ID_amministratore, ID_missione, messaggio_aggiornamento) 
+		VALUES (ID_amministratore, ID_missione, messaggio_aggiornamento);
+
         set ID_toReturn = last_insert_id();
 		return ID_toReturn;
 	end$
