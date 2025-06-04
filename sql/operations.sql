@@ -1,10 +1,13 @@
 use soccorso;
 
+
 drop function if exists inserisci_richiesta_timestamp_corrente;
 drop function if exists inserisci_richiesta_timestamp_personalizzato;
 drop procedure if exists aggiungi_immagine_richiesta;
 drop procedure if exists termina_missione;
 drop function if exists crea_missione_associata;
+drop procedure if exists conteggio_missioni_terminate_operatore;
+drop function if exists aggiungi_aggiornamento;
 
 /*
 Tutte le funzioni che inseriscono una riga in una tabella del DB restituiscono l'ID dell'elemento appena aggiunto
@@ -71,5 +74,14 @@ CREATE DEFINER=`root`@`localhost` FUNCTION `aggiungi_aggiornamento`(ID_amministr
         set ID_toReturn = last_insert_id();
 		return ID_toReturn;
 	end$
-
+    
+CREATE DEFINER=`root`@`localhost` PROCEDURE `conteggio_missioni_terminate_operatore`(in ID_operatore int)
+begin
+			select count(distinct m.ID) as numero_missioni_terminate
+            from squadraOperatore so 
+            join missione m on so.ID_squadra = m.ID_squadra
+            join richiesta r on m.ID_richiesta = r.ID
+            where so.ID_operatore = ID_operatore
+            and r.stato = 'terminata';
+        end$
 DELIMITER ;

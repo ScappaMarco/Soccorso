@@ -390,39 +390,6 @@ for each row
         update richiesta set stato = "in_corso" where ID = NEW.ID_richiesta;
     end $
 
--- I seguenti trigger si occupano di prevenire che un operatore caposquadra venga inserito di nuovo nella suadra che comanda (insert e update)
-create trigger operatore_caposquadra_duplicato_on_insert
-before insert on squadraOperatore
-for each row
-    begin
-        declare var_id_caposquadra INT;
-
-        SELECT s.ID_operatore_caposquadra INTO var_id_caposquadra
-        FROM squadra s 
-        WHERE ID = NEW.ID_squadra;
-
-        IF var_id_caposquadra = NEW.ID_operatore THEN
-            SIGNAL SQLSTATE '45000'
-                SET MESSAGE_TEXT = "Non puoi inserire questo operatore all'interno della squadra in quanto è il caposquadra.";
-        END IF;
-    end $
-
-create trigger operatore_caposquadra_duplicato_on_update
-before update on squadraOperatore
-for each row
-    begin
-        declare var_id_caposquadra INT;
-
-        SELECT s.ID_operatore_caposquadra INTO var_id_caposquadra
-        FROM squadra s 
-        WHERE ID = NEW.ID_squadra;
-
-        IF var_id_caposquadra = NEW.ID_operatore THEN
-            SIGNAL SQLSTATE '45000'
-                SET MESSAGE_TEXT = "Non puoi inserire questo operatore all'interno della squadra in quanto è il caposquadra.";
-        END IF;
-    end $
-
 create trigger settaggio_stato_operatori_on_insert_missione
 after insert on missione
 for each row
