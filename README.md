@@ -39,10 +39,10 @@ Di seguito sono illustrate schematicamente le operazioni previste sulla base di 
     6. Calcolo del tempo medio di svolgimento delle missioni (dalla creazione alla chiusura) in un anno specifico o per ciascun caposquadra.
     7. Calcolo del numero di richieste provenienti da un certo soggetto segnalante (identificato dall'indirizzo email) o da un certo indirizzo IP nelle ultime 36 ore.
     8. Calcolo del tempo totale di impiego in missione di un certo operatore (cioè somma delle durata delle missioni in cui è stato coinvolto)
-    10. Estrazione delle missioni svoltesi negli ultimi tre anni nello stesso luogo di una missione data.
-    11. Estrazione della lista delle richieste di soccorso chiuse con risultato non totalmente positivo (livello di successo minore di 5).
-    12. Estrazione degli operatori maggiormente coinvolti nelle richieste di soccorso chiuse con risultato non totalmente positivo (calcolate come alla query precedente).
-    13. Estrazione dello storico delle missioni in cui è stato coinvolto un certo mezzo.
-    14. Calcolo delle ore d'uso di un certo materiale (supponiamo che il tempo d'uso uso corrisponda alla durata totale della missione in cui è stato assegnato).
+    9. Estrazione delle missioni svoltesi negli ultimi tre anni nello stesso luogo di una missione data.
+    10. Estrazione della lista delle richieste di soccorso chiuse con risultato non totalmente positivo (livello di successo minore di 5).
+    11. Estrazione degli operatori maggiormente coinvolti nelle richieste di soccorso chiuse con risultato non totalmente positivo (calcolate come alla query precedente).
+    12. Estrazione dello storico delle missioni in cui è stato coinvolto un certo mezzo.
+    13. Calcolo delle ore d'uso di un certo materiale (supponiamo che il tempo d'uso uso corrisponda alla durata totale della missione in cui è stato assegnato).
 
 È possibile inserire procedure di gestione addizionali che si ritengano utili.

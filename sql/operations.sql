@@ -8,6 +8,7 @@ drop procedure if exists termina_missione;
 drop function if exists crea_missione_associata;
 drop procedure if exists conteggio_missioni_terminate_operatore;
 drop function if exists aggiungi_aggiornamento;
+drop procedure if exists tempo_medio_missione_anno;
 
 /*
 Tutte le funzioni che inseriscono una riga in una tabella del DB restituiscono l'ID dell'elemento appena aggiunto
@@ -84,4 +85,13 @@ begin
             where so.ID_operatore = ID_operatore
             and r.stato = 'terminata';
         end$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `tempo_medio_missione_anno`(in anno int)
+begin
+				select avg (timestampdiff(second, m.timestamp_inizio, c.timestamp_fine)) / 3600
+                from missione m 
+                join conclusioni c on m.ID = c.ID_missione
+                where year (c.timestamp_fine) = anno;
+            end$
+
 DELIMITER ;
