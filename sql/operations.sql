@@ -54,44 +54,52 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `termina_missione`(in ID_missione in
 -- In questo caso (vincolo dovuto dall'aggiunta di trigger specifici) l'id_richiesta deve essere associato ad una richiesta in stato 'convalidata'
 CREATE DEFINER=`root`@`localhost` FUNCTION `crea_missione_associata`(timestamp_inizio datetime, obiettivo text, descrizione text, ID_squadra int, ID_richiesta int) RETURNS int
     DETERMINISTIC
-    begin
-		declare ID_toReturn int unsigned;
+		begin
+			declare ID_toReturn int unsigned;
 
-		insert into missione (timestamp_inizio, obiettivo, descrizione, ID_squadra, ID_richiesta)
-        values (timestamp_inizio, obiettivo, descrizione, ID_squadra, ID_richiesta);
+			insert into missione (timestamp_inizio, obiettivo, descrizione, ID_squadra, ID_richiesta)
+			values (timestamp_inizio, obiettivo, descrizione, ID_squadra, ID_richiesta);
 
-        set ID_toReturn = last_insert_id();
-		return ID_toReturn;
-	end$
+			set ID_toReturn = last_insert_id();
+			return ID_toReturn;
+		end$
 
 CREATE DEFINER=`root`@`localhost` FUNCTION `aggiungi_aggiornamento`(ID_amministratore INT, ID_missione INT, messaggio_aggiornamento TEXT) RETURNS int
     DETERMINISTIC
-    begin
-		declare ID_toReturn int unsigned;
+		begin
+			declare ID_toReturn int unsigned;
 
-		INSERT INTO aggiornamenti (ID_amministratore, ID_missione, messaggio_aggiornamento) 
-		VALUES (ID_amministratore, ID_missione, messaggio_aggiornamento);
+			INSERT INTO aggiornamenti (ID_amministratore, ID_missione, messaggio_aggiornamento) 
+			VALUES (ID_amministratore, ID_missione, messaggio_aggiornamento);
 
-        set ID_toReturn = last_insert_id();
-		return ID_toReturn;
-	end$
+			set ID_toReturn = last_insert_id();
+			return ID_toReturn;
+		end$
     
 CREATE DEFINER=`root`@`localhost` PROCEDURE `conteggio_missioni_terminate_operatore`(in ID_operatore int)
-begin
-			select count(distinct m.ID) as numero_missioni_terminate
-            from squadraOperatore so 
-            join missione m on so.ID_squadra = m.ID_squadra
-            join richiesta r on m.ID_richiesta = r.ID
-            where so.ID_operatore = ID_operatore
-            and r.stato = 'terminata';
-        end$
+	begin
+		select count(distinct m.ID) as numero_missioni_terminate
+		from squadraOperatore so 
+		join missione m on so.ID_squadra = m.ID_squadra
+		join richiesta r on m.ID_richiesta = r.ID
+		where so.ID_operatore = ID_operatore
+		and r.stato = 'terminata';
+	end$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `tempo_medio_missione_anno`(in anno int)
-begin
-				select avg (timestampdiff(second, m.timestamp_inizio, c.timestamp_fine)) / 3600
-                from missione m 
-                join conclusioni c on m.ID = c.ID_missione
-                where year (c.timestamp_fine) = anno;
-            end$
+	begin
+		select avg (timestampdiff(second, m.timestamp_inizio, c.timestamp_fine)) / 3600
+		from missione m 
+		join conclusioni c on m.ID = c.ID_missione
+		where year (c.timestamp_fine) = anno;
+	end$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `calcolo_numero_richieste_email_segnalante`(in email_segnalante varchar(40))
+	begin
+		SELECT count(distinct r.ID)
+        FROM richiesta r
+        WHERE r.email_segnalante = email_segnalante 
+			AND r.timestamp_arrivo >= NOW() - interval 36 HOUR;
+	end$
 
 DELIMITER ;
