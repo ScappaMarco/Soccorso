@@ -11,6 +11,7 @@ drop procedure if exists tempo_medio_missione_anno;
 drop procedure if exists calcolo_numero_richieste_email_segnalante;
 drop procedure if exists calcolo_numero_richieste_indirizzo_ip;
 drop procedure if exists calcolo_tempo_totale_operatore;
+drop procedure if exists missioni_stesso_luogo_last3years;
 
 /*
 Tutte le funzioni che inseriscono una riga in una tabella del DB restituiscono l'ID dell'elemento appena aggiunto
@@ -119,6 +120,19 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `calcolo_tempo_totale_operatore`(in 
         JOIN conclusione c ON m.ID = c.ID_missione
         JOIN squadraOperatore so ON so.ID_squadra = m.ID_squadra
         WHERE so.ID_operatore = id_operatore;
+	end$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `missioni_stesso_luogo_last3years`(in id_missione int)
+	begin
+		SELECT m1.*
+		FROM missione m1
+		JOIN richiesta r1 ON r1.ID = m1.ID_richiesta
+		JOIN missione m2 ON m2.ID = id_missione
+		JOIN richiesta r2 ON r2.ID = m2.ID_richiesta
+		WHERE r1.indirizzo = r2.indirizzo
+			AND r1.coordinate = r2.coordinate
+			AND m1.timestamp_inizio >= NOW() - INTERVAL 3 YEAR
+			AND m1.ID != m2.ID; -- serve as escluderela missione passata in input
 	end$
 
 DELIMITER ;
