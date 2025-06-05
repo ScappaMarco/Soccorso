@@ -1,6 +1,5 @@
 use soccorso;
 
-
 drop function if exists inserisci_richiesta_timestamp_corrente;
 drop function if exists inserisci_richiesta_timestamp_personalizzato;
 drop procedure if exists aggiungi_immagine_richiesta;
@@ -9,6 +8,9 @@ drop function if exists crea_missione_associata;
 drop procedure if exists conteggio_missioni_terminate_operatore;
 drop function if exists aggiungi_aggiornamento;
 drop procedure if exists tempo_medio_missione_anno;
+drop procedure if exists calcolo_numero_richieste_email_segnalante;
+drop procedure if exists calcolo_numero_richieste_indirizzo_ip;
+drop procedure if exists calcolo_tempo_totale_operatore;
 
 /*
 Tutte le funzioni che inseriscono una riga in una tabella del DB restituiscono l'ID dell'elemento appena aggiunto
@@ -100,6 +102,23 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `calcolo_numero_richieste_email_segn
         FROM richiesta r
         WHERE r.email_segnalante = email_segnalante 
 			AND r.timestamp_arrivo >= NOW() - interval 36 HOUR;
+	end$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `calcolo_numero_richieste_indirizzo_ip`(in indirizzo_ip varchar(12))
+	begin
+		SELECT count(distinct r.ID)
+        FROM richiesta r
+        WHERE r.indirizzo_ip_segnalante = indirizzo_ip
+			AND r.timestamp_arrivo >= NOW() - interval 36 HOUR;
+	end$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `calcolo_tempo_totale_operatore`(in id_operatore int)
+	begin
+		SELECT SUM(timestampdiff(SECOND, m.timestamp_inizio, c.timestamp_fine)) / 3600 AS tempo_totale_ore
+        FROM missione m	
+        JOIN conclusione c ON m.ID = c.ID_missione
+        JOIN squadraOperatore so ON so.ID_squadra = m.ID_squadra
+        WHERE so.ID_operatore = id_operatore;
 	end$
 
 DELIMITER ;
