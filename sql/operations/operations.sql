@@ -71,4 +71,24 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `missioni_stesso_luogo_last3years`(i
 			AND m1.ID != m2.ID; -- serve as escluderela missione passata in input
 	end$
 
+CREATE DEFINER=`root`@`localhost` PROCEDURE `storico_missioni_mezzo`(in id_mezzo int unsigned)
+	begin
+		select mz.targa, mz.costruttore, mz.modello, m.ID as ID_missione, m.timestamp_inizio, m.obiettivo,
+				m.descrizione, r.coordinate, r.indirizzo, r.stato as stato_richiesta
+        from mezzo mz
+        join missioneMezzo mm on mz.ID = mm.ID_mezzo
+        join missione m on mm.ID_missione = m.ID
+        join richiesta r on m.ID_richiesta = r.ID
+        where mz.ID = id_mezzo;
+    end$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `calcolo_tempo_uso_materiale`(in id_materiale int)
+	begin
+		SELECT SUM(timestampdiff(SECOND, m.timestamp_inizio, c.timestamp_fine)) / 3600 AS tempo_uso_materiale
+        FROM missioneMateriale mm	
+		JOIN missione m ON mm.ID_missione = m.ID
+        JOIN conclusione c ON m.ID = c.ID_missione
+        WHERE mm.ID_materiale = id_materiale;
+	end$
+
 DELIMITER ;
