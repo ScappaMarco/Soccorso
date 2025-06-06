@@ -2,6 +2,7 @@ use soccorso;
 
 drop procedure if exists aggiungi_immagine_richiesta;
 drop procedure if exists conteggio_missioni_terminate_operatore;
+drop procedure if exists convalida_richiesta
 drop procedure if exists tempo_medio_missione_anno;
 drop procedure if exists calcolo_numero_richieste_email_segnalante;
 drop procedure if exists calcolo_numero_richieste_indirizzo_ip;
@@ -23,6 +24,11 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `conteggio_missioni_terminate_operat
 		join richiesta r on m.ID_richiesta = r.ID
 		where so.ID_operatore = ID_operatore
 		and r.stato = 'terminata';
+	end$
+
+REATE DEFINER=`root`@`localhost` PROCEDURE `convalida_richiesta`(in ID_richiesta INT, in stringa_convalida varchar(20))
+	begin
+		update richiesta set stato = 'convalidata';
 	end$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `tempo_medio_missione_anno`(in anno int)
