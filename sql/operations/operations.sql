@@ -51,10 +51,11 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `calcolo_numero_richieste_indirizzo_
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `calcolo_tempo_totale_operatore`(in id_operatore int)
 	begin
-		SELECT SUM(timestampdiff(SECOND, m.timestamp_inizio, c.timestamp_fine)) / 3600 AS tempo_totale_ore
+		SELECT o.nome, o.cognome, o.matricola, SUM(timestampdiff(SECOND, m.timestamp_inizio, c.timestamp_fine)) / 3600 AS tempo_totale_ore
         FROM missione m	
         JOIN conclusione c ON m.ID = c.ID_missione
         JOIN squadraOperatore so ON so.ID_squadra = m.ID_squadra
+		JOIN operatore o ON so.ID_operatore = o.ID
         WHERE so.ID_operatore = id_operatore;
 	end$
 
@@ -84,10 +85,11 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `storico_missioni_mezzo`(in id_mezzo
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `calcolo_tempo_uso_materiale`(in id_materiale int)
 	begin
-		SELECT SUM(timestampdiff(SECOND, m.timestamp_inizio, c.timestamp_fine)) / 3600 AS tempo_uso_materiale
+		SELECT ma.nome as nome_materiale, SUM(timestampdiff(SECOND, m.timestamp_inizio, c.timestamp_fine)) / 3600 AS tempo_uso_materiale
         FROM missioneMateriale mm	
 		JOIN missione m ON mm.ID_missione = m.ID
         JOIN conclusione c ON m.ID = c.ID_missione
+		JOIN materiale ma on mm.ID_materiale = ma.ID
         WHERE mm.ID_materiale = id_materiale;
 	end$
 
