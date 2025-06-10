@@ -181,7 +181,7 @@ CREATE TABLE `missione` (
   PRIMARY KEY (`ID`),
   KEY `richiesta_associata` (`ID_richiesta`),
   KEY `squadra_associata` (`ID_squadra`),
-  UNIQUE KEY (`timestamp_inizio`, `obiettivo`),
+  UNIQUE KEY (`timestamp_inizio`, `ID_squadra`),
   CONSTRAINT `richiesta_associata` FOREIGN KEY (`ID_richiesta`) REFERENCES `richiesta` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `squadra_associata` FOREIGN KEY (`ID_squadra`) REFERENCES `squadra` (`ID`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -292,7 +292,7 @@ CREATE TABLE `richiesta` (
   `timestamp_arrivo` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `file_immagine` blob DEFAULT NULL,
   `didascalia_immagine` varchar(30) DEFAULT NULL,
-  `descrizione` text DEFAULT NULL:,
+  `descrizione` text DEFAULT NULL,
   `indirizzo` varchar(30) NOT NULL,
   `coordinate` varchar(20) NOT NULL,
   PRIMARY KEY (`ID`),
@@ -325,11 +325,13 @@ DROP TABLE IF EXISTS `squadraOperatore`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `squadraOperatore` (
+  `ID` int unsigned NOT NULL AUTO_INCREMENT,
   `ID_operatore` int unsigned NOT NULL,
   `ID_squadra` int unsigned NOT NULL,
   `ruolo` varchar(20) NOT NULL,
-  PRIMARY KEY (`ID_operatore`,`ID_squadra`),
+  PRIMARY KEY (`ID`),
   KEY `squadra_operatore` (`ID_squadra`),
+  KEY `operatore_squadra` (`ID_operatore`),
   CONSTRAINT `operatore_squadra` FOREIGN KEY (`ID_operatore`) REFERENCES `operatore` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `squadra_operatore` FOREIGN KEY (`ID_squadra`) REFERENCES `squadra` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
