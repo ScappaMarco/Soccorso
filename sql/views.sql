@@ -54,7 +54,7 @@ WHERE c.livello_successo < 5;
 
 -- Operatori maggiormente coinvolti nelle richieste di soccorso chiuse con risultato non totalmente positivo
 CREATE VIEW operatori_missioni_con_esito_non_totalmente_positivo AS
-SELECT o.matricola, o.nome, o.cognome, COUNT(distinct m.ID) AS conteggio_missioni
+SELECT o.matricola, o.nome, o.cognome, COUNT(distinct smp.ID) AS conteggio_missioni
 FROM select_missioni_con_esito_non_totalmente_positivo smp
 JOIN squadra s ON smp.ID_squadra = s.ID
 JOIN squadraOperatore so ON s.ID = so.ID_squadra
