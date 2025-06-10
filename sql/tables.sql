@@ -325,13 +325,10 @@ DROP TABLE IF EXISTS `squadraOperatore`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `squadraOperatore` (
-  `ID` int unsigned NOT NULL AUTO_INCREMENT,
   `ID_operatore` int unsigned NOT NULL,
   `ID_squadra` int unsigned NOT NULL,
   `ruolo` varchar(20) NOT NULL,
-  PRIMARY KEY (`ID`),
-  KEY `squadra_operatore` (`ID_squadra`),
-  KEY `operatore_squadra` (`ID_operatore`),
+  PRIMARY KEY (`ID_operatore`, `ID_squadra`),
   CONSTRAINT `operatore_squadra` FOREIGN KEY (`ID_operatore`) REFERENCES `operatore` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `squadra_operatore` FOREIGN KEY (`ID_squadra`) REFERENCES `squadra` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
