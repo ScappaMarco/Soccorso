@@ -588,11 +588,6 @@ for each row
         END IF;
     end$
 
-create trigger modifica_operatore_squadra_impegnata
-before update on squadraOperatore
-for each row
-
-
 create trigger aggiunta_operatore_caposquadra_squadra_occupata
 before update on squadra
 for each row

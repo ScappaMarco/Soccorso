@@ -2,12 +2,14 @@ use soccorso;
 
 drop procedure if exists aggiungi_immagine_richiesta;
 drop procedure if exists conteggio_missioni_terminate_operatore;
-drop procedure if exists convalida_richiesta
+drop procedure if exists convalida_richiesta;
 drop procedure if exists tempo_medio_missione_anno;
 drop procedure if exists calcolo_numero_richieste_email_segnalante;
 drop procedure if exists calcolo_numero_richieste_indirizzo_ip;
 drop procedure if exists calcolo_tempo_totale_operatore;
 drop procedure if exists missioni_stesso_luogo_last3years;
+drop procedure if exists storico_missioni_mezzo;
+drop procedure if exists calcolo_tempo_uso_materiale;
 
 DELIMITER $
         
@@ -26,14 +28,14 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `conteggio_missioni_terminate_operat
 		and r.stato = 'terminata';
 	end$
 
-REATE DEFINER=`root`@`localhost` PROCEDURE `convalida_richiesta`(in ID_richiesta INT, in stringa_convalida varchar(20))
+CREATE DEFINER=`root`@`localhost` PROCEDURE `convalida_richiesta`(in ID_richiesta INT, in stringa_convalida varchar(20))
 	begin
 		update richiesta set stato = 'convalidata';
 	end$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `tempo_medio_missione_anno`(in anno int)
 	begin
-		select avg (timestampdiff(second, m.timestamp_inizio, c.timestamp_fine)) / 3600
+		select avg (timestampdiff(second, m.timestamp_inizio, c.timestamp_fine)) / 3600 as tempo_medio_missione_in_ore
 		from missione m 
 		join conclusioni c on m.ID = c.ID_missione
 		where year (c.timestamp_fine) = anno;
