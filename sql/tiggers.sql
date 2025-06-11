@@ -47,6 +47,8 @@ drop trigger if exists controllo_indirizo_IP_richiesta_on_insert;
 drop trigger if exists controllo_indirizo_IP_richiesta_on_update;
 drop trigger if exists controllo_coordinate_richiesta_on_insert;
 drop trigger if exists controllo_coordinate_richiesta_on_update;
+drop trigger if exists vincolo_richiesta_ignoarata;
+drop trigger if exists aggiunta_caposquadra_squadra;
 
 delimiter $
 
@@ -798,7 +800,7 @@ create trigger aggiunta_caposquadra_squadra
 after insert on squadra
 for each row
     begin
-        INSERT INTO squadraOperatore(ID_operatore, ID_squadra) VALUES (NEW.ID, NEW.ID_caposuqdra, "caposuqdra");
+        INSERT INTO squadraOperatore(ID_operatore, ID_squadra, ruolo) VALUES (NEW.ID_operatore_caposquadra, NEW.ID, "caposqudra");
     end$
 
 create trigger controllo_targa_mezzo_on_insert
@@ -849,19 +851,19 @@ create trigger controllo_coordinate_richiesta_on_insert
 before insert on richiesta
 for each row
     begin
-        IF NOT (NEW.coordinate REGEXP '^-?[0-9]{1,2}(\\.[0-9]+)?,\\s*-?[0-9]{1,3}(\\.[0-9]+)?$') THEN
+        IF NOT (NEW.coordinate REGEXP '^-?([0-9]{1,2})\.([0-9]+) ([0-9]{1,3})\.([0-9]+)$') THEN
             SIGNAL SQLSTATE '45000'
                 SET MESSAGE_TEXT = 'Formato coordinate errato: il formato corretto per le coordinate è -78.4434 111.8879.';
-        END IF
+        END IF;
     end$
 
 create trigger controllo_coordinate_richiesta_on_update
 before update on richiesta
 for each row
     begin
-        IF NOT (NEW.coordinate REGEXP '^-?[0-9]{1,2}(\\.[0-9]+)?,\\s*-?[0-9]{1,3}(\\.[0-9]+)?$') THEN
+        IF NOT (NEW.coordinate REGEXP '^-?([0-9]{1,2})\.([0-9]+) ([0-9]{1,3})\.([0-9]+)$') THEN
             SIGNAL SQLSTATE '45000'
                 SET MESSAGE_TEXT = 'Formato coordinate errato: il formato corretto per le coordinate è -78.4434 111.8879.';
-        END IF
+        END IF;
     end$
 delimiter ;

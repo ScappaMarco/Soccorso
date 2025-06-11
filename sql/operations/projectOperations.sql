@@ -66,7 +66,8 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `calcolo_tempo_totale_operatore`(in 
         JOIN conclusione c ON m.ID = c.ID_missione
         JOIN squadraOperatore so ON so.ID_squadra = m.ID_squadra
 		JOIN operatore o ON so.ID_operatore = o.ID
-        WHERE so.ID_operatore = id_operatore;
+        WHERE so.ID_operatore = id_operatore
+		GROUP BY o.ID;
 	end$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `missioni_stesso_luogo_last3years`(in id_missione int)
@@ -101,6 +102,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `calcolo_tempo_uso_materiale`(in id_
         JOIN conclusione c ON m.ID = c.ID_missione
 		JOIN materiale ma on mm.ID_materiale = ma.ID
         WHERE mm.ID_materiale = id_materiale;
+		GROUP BY ma.ID;
 	end$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `disattivazione_amministratore`(in id_amministratore int)

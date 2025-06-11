@@ -59,4 +59,5 @@ FROM select_missioni_con_esito_non_totalmente_positivo smp
 JOIN squadra s ON smp.ID_squadra = s.ID
 JOIN squadraOperatore so ON s.ID = so.ID_squadra
 JOIN operatore o ON so.ID_operatore = o.ID
+GROUP BY o.matricola
 ORDER BY conteggio_missioni DESC;
