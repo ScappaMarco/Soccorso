@@ -84,7 +84,8 @@ CREATE DEFINER=`root`@`localhost` FUNCTION `aggiungi_amministratore`(nome varcha
 			return id_to_return;
 		end$
     
-CREATE DEFINER=`root`@`localhost` FUNCTION `aggiungi_conclusione`(id_missione int unsigned, id_amministratore int unsigned, livello_successo smallint, timestamp_fine datetime) RETURNS int
+CREATE DEFINER=`root`@`localhost` FUNCTION `aggiungi_conclusione`(id_missione int unsigned, id_amministratore int unsigned, 
+	livello_successo smallint, timestamp_fine datetime) RETURNS int
     DETERMINISTIC
 		begin
 			declare ID_toReturn int unsigned;
@@ -120,7 +121,8 @@ CREATE DEFINER=`root`@`localhost` FUNCTION `aggiungi_mezzo`(targa varchar(7), co
 			return ID_toReturn;
 		end$
 
-CREATE DEFINER=`root`@`localhost` FUNCTION `aggiungi_missione`(timestamp_inizio datetime, obiettivo text, descrizione text, ID_squadra int, ID_richiesta int) RETURNS int
+CREATE DEFINER=`root`@`localhost` FUNCTION `aggiungi_missione`(timestamp_inizio datetime, obiettivo text, 
+	descrizione text, ID_squadra int, ID_richiesta int) RETURNS int
     DETERMINISTIC
 		begin
 			declare ID_toReturn int unsigned;
@@ -216,8 +218,10 @@ CREATE DEFINER=`root`@`localhost` FUNCTION `aggiungi_squadraOperatore`(id_operat
 			return id_to_return;
 		end$
 
--- per l'inserimento della richiesta abbiamo creato 2 funzioni differenti: la prima che inserisce la richiesta con il timestamp di default (che è quello attuale), e la seconda che invece prende in input un dato timestamp aggiuntivo, in modo da poter aggiungere se necessario richieste non arrivate sul momento.
-CREATE DEFINER=`root`@`localhost` FUNCTION `aggiungi_richiesta_timestamp_corrente`(stringa_convalida varchar(20), indirizzo_ip_origine varchar(12), nome_segnalante varchar(30), 
+-- per l'inserimento della richiesta abbiamo creato 2 funzioni differenti: la prima che inserisce la richiesta con il 
+--timestamp di default (che è quello attuale), e la seconda che invece prende in input un dato timestamp aggiuntivo, in modo da poter aggiungere se necessario richieste non arrivate sul momento.
+CREATE DEFINER=`root`@`localhost` FUNCTION `aggiungi_richiesta_timestamp_corrente`(stringa_convalida varchar(20), 
+	indirizzo_ip_origine varchar(12), nome_segnalante varchar(30), 
 email_segnalante varchar(40), descrizione text, indirizzo varchar(30), coordinate varchar(20)) RETURNS int
     DETERMINISTIC
 		begin
@@ -230,7 +234,8 @@ email_segnalante varchar(40), descrizione text, indirizzo varchar(30), coordinat
 			return ID_toReturn;
 		end$
 
-CREATE DEFINER=`root`@`localhost` FUNCTION `aggiungi_richiesta_timestamp_personalizzato`(stringa_convalida varchar(20), indirizzo_ip_origine varchar(12), nome_segnalante varchar(30), 
+CREATE DEFINER=`root`@`localhost` FUNCTION `aggiungi_richiesta_timestamp_personalizzato`(stringa_convalida varchar(20), 
+	indirizzo_ip_origine varchar(12), nome_segnalante varchar(30), 
 email_segnalante varchar(40), timestamp_arrivo timestamp, descrizione text, indirizzo varchar(30), coordinate varchar(20)) RETURNS int
     DETERMINISTIC
 		begin
@@ -244,3 +249,8 @@ email_segnalante varchar(40), timestamp_arrivo timestamp, descrizione text, indi
 		end$
 
 DELIMITER ;
+
+
+
+
+

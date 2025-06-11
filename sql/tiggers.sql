@@ -41,8 +41,15 @@ drop trigger if exists modifica_mezzi_assegnati_missione_in_corso;
 drop trigger if exists eliminazione_mezzi_assegnati_missione_in_corso;
 drop trigger if exists vincolo_assegnazione_materiali_missione_conclusa;
 drop trigger if exists vincolo_assegnazione_mezzi_missione_conclusa;
+drop trigger if exists controllo_targa_mezzo_on_insert;
+drop trigger if exists controllo_targa_mezzo_on_update;
+drop trigger if exists controllo_indirizo_IP_richiesta_on_insert;
+drop trigger if exists controllo_indirizo_IP_richiesta_on_update;
+drop trigger if exists controllo_coordinate_richiesta_on_insert;
+drop trigger if exists controllo_coordinate_richiesta_on_update;
 
 delimiter $
+
 /*
 AZIONE: after insert on conclusioni
 Il seguente trigger successivamente a un inserimento sulla tabella conclusioni si occupa di settare lo stato della 
@@ -256,7 +263,7 @@ before insert on aggiornamenti
 for each row
     begin
         declare timestamp_inizio_missione_associata datetime;
-        declare stato_missione_associata enum("in_attesa", "convalidata", "in_corso", "terminata");
+        declare stato_missione_associata enum("in_attesa", "convalidata", "in_corso", "terminata", "annullata", "ignorata");
 
         SELECT r.stato INTO stato_missione_associata
         FROM richiesta r
@@ -288,7 +295,7 @@ before update on aggiornamenti
 for each row
     begin
         declare timestamp_inizio_missione_associata datetime;
-        declare stato_missione_associata enum("in_attesa", "convalidata", "in_corso", "terminata");
+        declare stato_missione_associata enum("in_attesa", "convalidata", "in_corso", "terminata", "annullata", "ignorata");
 
         SELECT r.stato INTO stato_missione_associata
         FROM richiesta r
@@ -787,4 +794,74 @@ for each row
         END IF;
     end$
 
+create trigger aggiunta_caposquadra_squadra
+after insert on squadra
+for each row
+    begin
+        INSERT INTO squadraOperatore(ID_operatore, ID_squadra) VALUES (NEW.ID, NEW.ID_caposuqdra, "caposuqdra");
+    end$
+
+create trigger controllo_targa_mezzo_on_insert
+before insert on mezzo
+for each row
+    begin
+        SET NEW.targa = UPPER(NEW.targa);
+
+        IF NOT (NEW.targa REGEXP '^[A-Z][A-Z][1-9][1-9][1-9][A-Z][A-Z]$') THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'Formato targa errato: il formato della targa deve essere AB123CD.';
+        END IF;
+    end$
+
+create trigger controllo_targa_mezzo_on_update
+before update on mezzo
+for each row
+    begin
+        SET NEW.targa = UPPER(NEW.targa);
+
+        IF NOT (NEW.targa REGEXP '^[A-Z][A-Z][1-9][1-9][1-9][A-Z][A-Z]$') THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'Formato targa errato: il formato della targa deve essere AB123CD.';
+        END IF;
+    end$
+
+create trigger controllo_indirizo_IP_richiesta_on_insert
+before insert on richiesta
+for each row
+    begin
+        IF NOT(NEW.indirizzo_ip_origine REGEXP '^([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})$') THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'Formato indirizzo IP errato: il formaqto degli indirizzi IP deve essere 123.123.123.123.';
+        END IF;
+    end$
+
+create trigger controllo_indirizo_IP_richiesta_on_update
+before update on richiesta
+for each row
+    begin
+        IF NOT(NEW.indirizzo_ip_origine REGEXP '^([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})$') THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'Formato indirizzo IP errato: il formaqto degli indirizzi IP deve essere 123.123.123.123.';
+        END IF;
+    end$
+
+create trigger controllo_coordinate_richiesta_on_insert
+before insert on richiesta
+for each row
+    begin
+        IF NOT (NEW.coordinate REGEXP '^-?[0-9]{1,2}(\\.[0-9]+)?,\\s*-?[0-9]{1,3}(\\.[0-9]+)?$') THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'Formato coordinate errato: il formato corretto per le coordinate è -78.4434 111.8879.';
+        END IF
+    end$
+
+create trigger controllo_coordinate_richiesta_on_update
+before update on richiesta
+for each row
+    begin
+        IF NOT (NEW.coordinate REGEXP '^-?[0-9]{1,2}(\\.[0-9]+)?,\\s*-?[0-9]{1,3}(\\.[0-9]+)?$') THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'Formato coordinate errato: il formato corretto per le coordinate è -78.4434 111.8879.';
+        END IF
+    end$
 delimiter ;

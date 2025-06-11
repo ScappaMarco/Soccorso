@@ -10,6 +10,7 @@ drop procedure if exists calcolo_tempo_totale_operatore;
 drop procedure if exists missioni_stesso_luogo_last3years;
 drop procedure if exists storico_missioni_mezzo;
 drop procedure if exists calcolo_tempo_uso_materiale;
+drop procedure if exists disattivazione_amministratore;
 
 DELIMITER $
         
@@ -30,7 +31,8 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `conteggio_missioni_terminate_operat
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `convalida_richiesta`(in ID_richiesta INT, in stringa_convalida varchar(20))
 	begin
-		update richiesta set stato = 'convalidata';
+		update richiesta r set r.stato = 'convalidata' WHERE r.ID = ID_richiesta;
+        update richiesta r set r.stringa_convalida = stringa_convalida WHERE r.ID = ID_richiesta;
 	end$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `tempo_medio_missione_anno`(in anno int)
@@ -49,7 +51,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `calcolo_numero_richieste_email_segn
 			AND r.timestamp_arrivo >= NOW() - interval 36 HOUR;
 	end$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `calcolo_numero_richieste_indirizzo_ip`(in indirizzo_ip varchar(12))
+CREATE DEFINER=`root`@`localhost` PROCEDURE `calcolo_numero_richieste_indirizzo_ip`(in indirizzo_ip varchar(15))
 	begin
 		SELECT count(distinct r.ID)
         FROM richiesta r
@@ -101,4 +103,8 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `calcolo_tempo_uso_materiale`(in id_
         WHERE mm.ID_materiale = id_materiale;
 	end$
 
+CREATE DEFINER=`root`@`localhost` PROCEDURE `disattivazione_amministratore`(in id_amministratore int)
+	begin
+		UPDATE amministratore a SET a.attivo = FALSE WHERE a.ID = id_amministratore;
+	end$
 DELIMITER ;
