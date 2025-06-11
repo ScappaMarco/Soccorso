@@ -47,7 +47,7 @@ drop trigger if exists controllo_indirizo_IP_richiesta_on_insert;
 drop trigger if exists controllo_indirizo_IP_richiesta_on_update;
 drop trigger if exists controllo_coordinate_richiesta_on_insert;
 drop trigger if exists controllo_coordinate_richiesta_on_update;
-drop trigger if exists vincolo_richiesta_ignoarata;
+drop trigger if exists vincolo_richiesta_ignorata;
 drop trigger if exists aggiunta_caposquadra_squadra;
 
 delimiter $
@@ -784,7 +784,7 @@ for each row
         END IF;
     end$
 
-create trigger vincolo_richiesta_ignoarata
+create trigger vincolo_richiesta_ignorata
 before update on richiesta
 for each row
     begin
