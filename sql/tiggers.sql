@@ -324,7 +324,7 @@ for each row
         END IF;
     end $
 
--- I seguenti trigger hanno il compito di verificre che la data di inizio missione sia più nel futuro rispetto alla data di arrivo della richiesta associata, oppure se la data di inizio missione non sia nel futuro
+-- I seguenti trigger hanno il compito di verificre che la data di inizio missione sia più nel futuro rispetto alla data di arrivo della richiesta associata, oppure se la data di inizio missione non  sia nel futuro
 create trigger vincolo_data_missione_on_insert
 before insert on missione
 for each row

@@ -5,11 +5,11 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class Connect_JDBC {
-    
+
     private Connection connection;
-    private String URL;
+    private final String URL;
     private final String USERNAME;
-    private String password;
+    private final String password;
     
     public Connect_JDBC(String url, String username, String password) {
         this.URL = url;

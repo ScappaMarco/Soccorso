@@ -1,3 +1,4 @@
 ./soccorso/target
 sql/data.sql
 sql/dropTables.sql
+.vscode
