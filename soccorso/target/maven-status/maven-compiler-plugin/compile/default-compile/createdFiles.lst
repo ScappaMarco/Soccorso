@@ -1,0 +1,5 @@
+com/soccorso/model/Operatore.class
+com/soccorso/App.class
+com/soccorso/model/Amministratore.class
+com/soccorso/model/Abilita.class
+com/soccorso/business/jdbc/Connect_JDBC.class
