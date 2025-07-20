@@ -2,3 +2,4 @@
 sql/data.sql
 sql/dropTables.sql
 .idea
+/soccorso/target/

@@ -19,7 +19,7 @@ drop table if exists mezzo;
 drop table if exists materiale;
 drop table if exists operatore;
 
-drop user if exists 'admim'@'localhost';
+drop user if exists 'admin'@'localhost';
 
 create user 'admin'@'localhost' identified by 'pippo';
 grant all privileges on soccorso.* to 'admin'@'localhost';
